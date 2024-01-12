@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <stdlib.h>
 
 int main(int argc, char* argv[]){
@@ -23,7 +24,11 @@ int main(int argc, char* argv[]){
     } else {
         std::cout << "Undefined command\n";
     }
-    //echo(argc, argv);
+    std::map<std::string, std::string> :: iterator it;
+    for(it=input.args.begin();it !=input.args.end();++it)
+              {
+                         std::cout << it->first << ' ' <<it->second << '\n';
+                               }
     //system("pwd");
     return 0;
 }
