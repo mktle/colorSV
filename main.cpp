@@ -11,10 +11,11 @@ int main(int argc, char* argv[]){
         print_help();
         return 0;
     }
-    if (input.args.count("-o") == 0){
-        std::cout << "[ERROR] must specify output directory with -o\n";
-        return 1;
-    } else if (input.args["command"] == "preprocess"){
+    if (input.args["command"] == "preprocess"){
+        std::list<std::string> preprocess_required {"-o", "--graph", "--normal-ids", "--tumor-ids"};
+        if (!input.check_required_flags(preprocess_required)){
+            std::cout << "[ERROR] preprocess command missing required flags. See sv-caller --help\n";
+        }
         std::cout << "Performing preprocessing!\n";
         std::cout << "Output path: " << input.args["-o"] << '\n';
     } else if (input.args["command"] == "snv"){

@@ -1,3 +1,4 @@
+#include <list>
 #include <map>
 #include <string>
 
@@ -7,6 +8,7 @@
 class ArgumentParser{
 	public:
 		ArgumentParser(int &argc, char**argv);
+		bool check_required_flags(std::list<std::string>& r_flags);
 
 		std::map<std::string, std::string> args;
 };
