@@ -6,9 +6,13 @@
 
 int main(int argc, char* argv[]){
     ArgumentParser input(argc, argv);
-    if (input.args["command"] == "help"){
-        std::cout << "Exiting before doing anything!\n";
+    if (input.args["command"] == "--help"){
+        print_help();
         return 0;
+    }
+    if (input.args.count("-o") == 0){
+        std::cout << "[ERROR] must specify output directory with -o\n";
+        return 1;
     } else if (input.args["command"] == "preprocess"){
         std::cout << "Performing preprocessing!\n";
         std::cout << "Output path: " << input.args["-o"] << '\n';

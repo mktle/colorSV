@@ -11,7 +11,7 @@ class ArgumentParser{
 		std::map<std::string, std::string> args;
 };
 
-void echo(int &argc, char**argv);
+void print_help();
 
 #endif
 
