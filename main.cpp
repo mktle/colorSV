@@ -1,4 +1,5 @@
 #include "argument_parser.h"
+#include "preprocess.h"
 
 #include <cstring>
 #include <iostream>
@@ -11,13 +12,22 @@ int main(int argc, char* argv[]){
         print_help();
         return 0;
     }
+
     if (input.args["command"] == "preprocess"){
-        std::list<std::string> preprocess_required {"-o", "--graph", "--normal-ids", "--tumor-ids"};
-        if (!input.check_required_flags(preprocess_required)){
-            std::cout << "[ERROR] preprocess command missing required flags. See sv-caller --help\n";
+        // check that the user input all required flags
+        if (!preprocess::check_args(input)){
+            return 1;
+        }
+
+        // perform file and directory setup/checks
+        if (!preprocess::file_setup(input)){
+            return 1;
+        }
+
+        if (!preprocess::filter_unitigs(input)){
+            return 1;
         }
         std::cout << "Performing preprocessing!\n";
-        std::cout << "Output path: " << input.args["-o"] << '\n';
     } else if (input.args["command"] == "snv"){
         std::cout << "Performing SNV calling!\n";
     } else if (input.args["command"] == "translocation"){

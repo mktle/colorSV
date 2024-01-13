@@ -3,7 +3,7 @@
 #include <string>
 
 #ifndef ARGUMENT_PARSER_H
-#define ARGUMENT_PARSER
+#define ARGUMENT_PARSER_H
 
 class ArgumentParser{
 	public:

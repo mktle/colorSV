@@ -29,7 +29,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
                     // if valid, add options to argument map
                     std::string opts{*(argv + prev_opt_index + 1)};
                     for (int k{2}; prev_opt_index + k < i; k++){
-                        opts += " ";
+                        opts += ",";
                         opts += *(argv + prev_opt_index + k);
                     }
                     this->args.insert({*(argv + prev_opt_index), opts});
@@ -46,7 +46,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
             }
             std::string opts{*(argv + prev_opt_index + 1)};
             for (int k{2}; prev_opt_index + k < i; k++){
-                opts += " ";
+                opts += ",";
                 opts += *(argv + prev_opt_index + k);
             }
             this->args.insert({*(argv + prev_opt_index), opts});
@@ -70,8 +70,9 @@ void print_help(){
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph         STR     path to assembly graph file\n";
-    std::cout << "          --normal-ids    STR     normal sample identifiers\n";
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
+    std::cout << "     [optional flags] \n";
+    std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
     std::cout << "  * snv\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          -f              FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
