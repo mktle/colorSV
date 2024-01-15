@@ -15,8 +15,8 @@ bool snv::check_args(ArgumentParser& user_args){
         return false;
     }
 
-    if (user_args.args.count("--pileup") == 0 && (user_args.args.count("--normal-reads") == 0 ||  user_args.args.count("--tumor-reads") == 0)){
-        std::cout << "[ERROR] snv command requires either existing pileup file or paths to tumor and normal reads\n";
+    if (user_args.args.count("--pileup") == 0 && (user_args.args.count("--normal-reads") == 0 ||  user_args.args.count("--tumor-reads") == 0 || user_args.args.count("--reference") == 0)){
+        std::cout << "[ERROR] snv command requires either existing pileup file, or paths to tumor/normal reads and reference genome\n";
         return false;
     }
 
@@ -40,11 +40,27 @@ bool snv::check_args(ArgumentParser& user_args){
             return false;
         }
 
-        assert(user_args.args.count("--tumor-reads") > 0);
+        assert(user_args.args.count("--tumor-reads") > 0 && user_args.args.count("--reference") > 0);
 
         if (!(user_args.check_file("--tumor-reads", ".bam"))){
             return false;
         }
+
+        if (!(user_args.check_file("--reference", ".fa"))){
+            return false;
+        }
     }
+    return true;
+}
+
+bool snv::run_pileup(ArgumentParser& user_args){
+    // only run pileup if user has not specified an existing file
+    if (user_args.args.count("--pileup") > 0){
+        return true;
+    }
+    std::cout << "[SNV] Running pileup (this may take some time)\n";
+    std::string cmd{"htsbox pileup -v -c -f " + user_args.args["--reference"] + " -C -Q20 -q5 " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.srt.bam " + user_args.args["--normal-reads"] + " " + user_args.args["--tumor-reads"] + " > " + user_args.args["-o"] + "/intermediate_output/pileup.vcf"};
+    user_args.args.insert({"--pileup", user_args.args["-o"] + "/intermediate_output/pileup.vcf"});
+    system(cmd.c_str());
     return true;
 }

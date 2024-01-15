@@ -98,6 +98,7 @@ void print_help(){
     std::cout << "          --frac          FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
     std::cout << "          --normal-reads  STR     path to .bam file with normal reads\n";
     std::cout << "          --pileup        STR     path to existing pileup file\n";
+    std::cout << "          --reference     STR     path to reference genome file\n";
     std::cout << "          --tumor-reads   STR     path to .bam file with tumor reads\n";
     std::cout << "          -m              INT     minimum number of supporting tumor reads (default 10)\n";
     std::cout << "  * translocation\n";
