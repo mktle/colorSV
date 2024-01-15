@@ -1,15 +1,15 @@
 #include "argument_parser.h"
 #include "preprocess.h"
 
-#include <boost/filesystem.hpp>
-
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdlib.h>
 #include <sstream>
 #include <string>
-#include <sys/stat.h>
+#include <vector>
 
 bool preprocess::file_setup(ArgumentParser& user_args){
     // create output directory if it doesn't already exist
@@ -37,23 +37,14 @@ bool preprocess::check_args(ArgumentParser& user_args){
         user_args.args.insert({"-t", "3"});
     }
 
-    // check if graph file is readable
-    struct stat buffer;   
-    if (stat(user_args.args["--graph"].c_str(), &buffer) != 0){
-        std::cout << "[ERROR] assembly graph file specified in --graph is not readable\n";
+    if (!user_args.check_file("--graph", ".gfa")){
         return false;
     }
 
-    if (boost::filesystem::extension(user_args.args["--graph"]) != ".gfa"){
-        std::cout << "[ERROR] assembly graph file specified in --graph must be type .gfa\n";
+    if (!user_args.check_file("--reference", ".fa")){
         return false;
     }
 
-    // check if reference file is readable
-    if (stat(user_args.args["--reference"].c_str(), &buffer) != 0){
-        std::cout << "[ERROR] reference genome file specified in --reference is not readable\n";
-        return false;
-    }
     return true;
 }
 

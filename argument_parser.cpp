@@ -1,9 +1,12 @@
 #include "argument_parser.h"
 
+#include <boost/filesystem.hpp>
+
 #include <cstring>
 #include <list>
 #include <iostream>
 #include <stdexcept>
+#include <sys/stat.h>
 
 ArgumentParser::ArgumentParser(int &argc, char** argv){
     if(argc == 1){
@@ -64,6 +67,20 @@ bool ArgumentParser::check_required_flags(std::list<std::string>& r_flags){
     return true;
 }
 
+bool ArgumentParser::check_file(std::string opt, std::string ext){
+    struct stat buffer;   
+    if (stat(this->args[opt].c_str(), &buffer) != 0){
+        std::cout << "[ERROR] file specified in " << opt << " is not readable\n";
+        return false;
+    }
+
+    if (boost::filesystem::extension(this->args[opt]) != ext){
+        std::cout << "[ERROR] file specified in " << opt << " must be type " << ext << '\n';
+        return false;
+    }
+    return true;
+}
+
 void print_help(){
     std::cout << "Usage: sv-caller <mutation type> <-o OUTPUT PATH> [other flags]\n";
     std::cout << "Commands and options:\n";
@@ -78,7 +95,10 @@ void print_help(){
     std::cout << "          --filter        STR     path to files with regions to filter (e.g., centromeres)\n";
     std::cout << "  * snv\n";
     std::cout << "     [optional flags] \n";
-    std::cout << "          -f              FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
+    std::cout << "          --frac          FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
+    std::cout << "          --normal-reads  STR     path to .bam file with normal reads\n";
+    std::cout << "          --pileup        STR     path to existing pileup file\n";
+    std::cout << "          --tumor-reads   STR     path to .bam file with tumor reads\n";
     std::cout << "          -m              INT     minimum number of supporting tumor reads (default 10)\n";
     std::cout << "  * translocation\n";
     std::cout << "     [optional flags] \n";
