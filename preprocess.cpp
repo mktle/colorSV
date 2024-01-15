@@ -13,15 +13,16 @@
 
 bool preprocess::file_setup(ArgumentParser& user_args){
     // create output directory if it doesn't already exist
-    std::string cmd {"mkdir -p " + user_args.args["-o"]};
+    std::string cmd {"mkdir -p " + user_args.args["-o"] + "/intermediate_output/"};
     system(cmd.c_str());
 
     return true;
 }
 
+/* Checks that the user input all required flags */
 bool preprocess::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> preprocess_required {"-o", "--graph", "--tumor-ids"};
+    std::list<std::string> preprocess_required {"-o", "--graph", "--tumor-ids", "--reference", "-t"};
     if (!user_args.check_required_flags(preprocess_required)){
         std::cout << "[ERROR] preprocess command missing required flags. See sv-caller --help\n";
         return false;
@@ -30,6 +31,10 @@ bool preprocess::check_args(ArgumentParser& user_args){
     // add default flag values if user did not specify values
     if (user_args.args.count("--min-reads") == 0){
         user_args.args.insert({"--min-reads", "2"});
+    }
+
+    if (user_args.args.count("-t") == 0){
+        user_args.args.insert({"-t", "3"});
     }
 
     // check if graph file is readable
@@ -43,14 +48,22 @@ bool preprocess::check_args(ArgumentParser& user_args){
         std::cout << "[ERROR] assembly graph file specified in --graph must be type .gfa\n";
         return false;
     }
+
+    // check if reference file is readable
+    if (stat(user_args.args["--reference"].c_str(), &buffer) != 0){
+        std::cout << "[ERROR] reference genome file specified in --reference is not readable\n";
+        return false;
+    }
     return true;
 }
 
+/* Identifies tumor-only unitigs from given .gfa file */
 bool preprocess::filter_unitigs(ArgumentParser& user_args){
+    std::cout << "[PREPROCESS] filtering .gfa file for tumor-only unitigs\n";
     // open input and output files
     std::ifstream gfa_file(user_args.args["--graph"]);
-    std::ofstream out_unitigs(user_args.args["-o"] + "/tumor_only_unitigs.txt");
-    std::ofstream out_fa(user_args.args["-o"] + "/tumor_only_unitigs.fa");
+    std::ofstream out_unitigs(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
+    std::ofstream out_fa(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
 
     // parse tumor sample IDs into list
     std::vector<std::string> tumor_ids;
@@ -118,5 +131,22 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
     out_unitigs.close();
     out_fa.close();
 
+    return true;
+}
+
+bool preprocess::filter_regions(ArgumentParser& user_args){
+    // alignment to reference
+    std::cout << "[PREPROCESS] aligning unitigs to reference genome\n\n";
+    std::string cmd{"minimap2 -ax map-hifi -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
+    system(cmd.c_str());
+
+    // filter unwanted regions
+    if (user_args.args.count("--filter") > 0){
+        std::cout << "\n[PREPROCESS] filtering out regions in " << user_args.args["--filter"] << "\n";
+        cmd = "samtools view -L " + user_args.args["--filter"] + " -U " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam -o /dev/null " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam";
+    }else{
+        cmd = "mv " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam";
+    }
+    system(cmd.c_str());
     return true;
 }

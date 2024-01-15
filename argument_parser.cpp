@@ -70,9 +70,12 @@ void print_help(){
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph         STR     path to assembly graph file\n";
+    std::cout << "          --reference     STR     path to reference genome file\n";
+    std::cout << "          --t             INT     number of threads\n";
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
+    std::cout << "          --filter        STR     path to files with regions to filter (e.g., centromeres)\n";
     std::cout << "  * snv\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          -f              FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
