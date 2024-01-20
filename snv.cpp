@@ -138,21 +138,6 @@ bool snv::call_snvs(ArgumentParser& user_args){
                     }
                 }
 
-                /*
-                for (int i{0}; i < 5; i++){
-                    std::cout << read_info[0][i] << ' ' << read_info[1][i] << ' ' << read_info[2][i] << '\n';
-                }
-                std::cout << "****************\n";
-
-                for (int i{0}; i < 3; i++){
-                    for (int j{0}; j < 2; j++){
-                        std::cout << total_support[i][j] << ' ';
-                    }
-                    std:: cout << '\n';
-                }
-
-                assert(0);
-                */
 
                 bool to_write = false;
                 // check each allele to see if:
@@ -165,13 +150,15 @@ bool snv::call_snvs(ArgumentParser& user_args){
                         && total_support[NORMAL_IDX][i] == 0
                         // tumor support check
                         && total_support[TUMOR_IDX][i] >= read_thresh){
+                        int other_allele = (i == 0) ? 1 : 0;
 
-                        // check that the proportion of tumor reads is greater than "frac_thresh"
-                        if ( (float)(total_support[TUMOR_IDX][i]) / (float)(total_support[TUMOR_IDX][i] + total_support[NORMAL_IDX][i]) >= frac_thresh){
+                        // check that the proportion of alt reads in tumor sample is greater than "frac_thresh"
+                        if ( (float)(total_support[TUMOR_IDX][i]) / (float)(total_support[TUMOR_IDX][i] + total_support[TUMOR_IDX][other_allele]) >= frac_thresh){
                             to_write = true;
                         }
                     }
                 }
+                
                 if (to_write){
                     out_vcf << chr << '\t' << pos << '\t' << id << '\t' << ref << '\t' << alt << '\t' << qual << '\t' << filter << '\t' << info << '\t' << format << '\t';
                     for (int i{0}; i < 3; i++){
