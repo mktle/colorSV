@@ -40,7 +40,9 @@ int main(int argc, char* argv[]){
         if (!snv::run_pileup(input)){
             return 1;
         }
-        std::cout << "Performing SNV calling!\n";
+        if (!snv::call_snvs(input)){
+            return 1;
+        }
     } else if (input.args["command"] == "translocation"){
         std::cout << "Performing translocation calling!\n";
     } else {
