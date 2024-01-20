@@ -1,5 +1,6 @@
 #include "argument_parser.h"
 #include "preprocess.h"
+#include "snv.h"
 
 #include <cstring>
 #include <iostream>
@@ -33,7 +34,15 @@ int main(int argc, char* argv[]){
             return 1;
         }
     } else if (input.args["command"] == "snv"){
-        std::cout << "Performing SNV calling!\n";
+        if (!snv::check_args(input)){
+            return 1;
+        }
+        if (!snv::run_pileup(input)){
+            return 1;
+        }
+        if (!snv::call_snvs(input)){
+            return 1;
+        }
     } else if (input.args["command"] == "translocation"){
         std::cout << "Performing translocation calling!\n";
     } else {

@@ -139,5 +139,9 @@ bool preprocess::filter_regions(ArgumentParser& user_args){
         cmd = "mv " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam";
     }
     system(cmd.c_str());
+
+    // sort final result
+    cmd = "samtools view -bS " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam | samtools sort -o " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.srt.bam -@" + user_args.args["-t"] + "-m4g ";
+    system(cmd.c_str());
     return true;
 }
