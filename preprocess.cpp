@@ -128,13 +128,13 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 bool preprocess::filter_regions(ArgumentParser& user_args){
     // alignment to reference
     std::cout << "[PREPROCESS] aligning unitigs to reference genome\n\n";
-    std::string cmd{"minimap2 -ax map-hifi -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
+    std::string cmd{"minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
     system(cmd.c_str());
 
     // filter unwanted regions
     if (user_args.args.count("--filter") > 0){
         std::cout << "\n[PREPROCESS] filtering out regions in " << user_args.args["--filter"] << "\n";
-        cmd = "samtools view -L " + user_args.args["--filter"] + " -U " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam -o /dev/null " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam";
+        cmd = "samtools view -h -L " + user_args.args["--filter"] + " -U " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam -o /dev/null " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam";
     }else{
         cmd = "mv " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam";
     }
