@@ -88,7 +88,7 @@ void print_help(){
     std::cout << "     <required flags>\n";
     std::cout << "          --graph         STR     path to assembly graph file\n";
     std::cout << "          --reference     STR     path to reference genome file\n";
-    std::cout << "          --t             INT     number of threads\n";
+    std::cout << "          -t              INT     number of threads\n";
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
@@ -102,6 +102,8 @@ void print_help(){
     std::cout << "          --tumor-reads   STR     path to .bam file with tumor reads\n";
     std::cout << "          -m              INT     minimum number of supporting tumor reads (default 10)\n";
     std::cout << "  * translocation\n";
+    std::cout << "     <required flags>\n";
+    std::cout << "          --graph         STR     path to assembly graph file\n";
     std::cout << "     [optional flags] \n";
-    std::cout << "          -k              INT     maximum number of steps in topology search\n";
+    std::cout << "          -k              INT     maximum number of steps in topology search (default 10)\n";
 }

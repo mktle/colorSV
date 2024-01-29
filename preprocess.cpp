@@ -128,7 +128,7 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 bool preprocess::filter_regions(ArgumentParser& user_args){
     // alignment to reference
     std::cout << "[PREPROCESS] aligning unitigs to reference genome\n\n";
-    std::string cmd{"minimap2 -ax map-hifi -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
+    std::string cmd{"minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
     system(cmd.c_str());
 
     // filter unwanted regions
