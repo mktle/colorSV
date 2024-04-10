@@ -2,6 +2,7 @@
 #include "preprocess.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -50,11 +51,17 @@ bool preprocess::check_args(ArgumentParser& user_args){
 
 /* Identifies tumor-only unitigs from given .gfa file */
 bool preprocess::filter_unitigs(ArgumentParser& user_args){
-    std::cout << "[PREPROCESS] filtering .gfa file for tumor-only unitigs\n";
+    std::cout << "[PREPROCESS] classifying unitigs in .gfa file\n";
     // open input and output files
     std::ifstream gfa_file(user_args.args["--graph"]);
-    std::ofstream out_unitigs(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
-    std::ofstream out_fa(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
+    std::ofstream out_tumor_utg(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
+    std::ofstream out_tumor_fa(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
+
+    std::ofstream out_healthy_utg(user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.txt");
+    std::ofstream out_healthy_fa(user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.fa");
+
+    std::ofstream out_mixed_utg(user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.txt");
+    std::ofstream out_mixed_fa(user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.fa");
 
     // parse tumor sample IDs into list
     std::vector<std::string> tumor_ids;
@@ -87,40 +94,58 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
     gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     int num_reads{0};
-    bool tumor{true};
+    bool tumor{false};
+    bool normal{false};
 
     while(gfa_file >> line_type){
         if (line_type.c_str()[0] == 'S'){
             // end of the node, so reset for the next node
             // first, write unitig info if this is a tumor-only node
-            if (tumor and num_reads >= read_thresh){
-                out_unitigs << unitig << '\n';
-                out_fa << '>' << unitig << '\n' << segment << '\n';
+            if (tumor && !normal && num_reads >= read_thresh){
+                out_tumor_utg << unitig << '\n';
+                out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+            }else if (!tumor && normal){
+                out_healthy_utg << unitig << '\n';
+                out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
+            }else if (tumor && normal){
+                out_mixed_utg << unitig << '\n';
+                out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
+            }else{
+                assert(tumor && num_reads < read_thresh);
             }
             gfa_file >> unitig >> segment;
 
-            tumor = true;
+            tumor = false;
+            normal = false;
             num_reads = 0;
         }else if (line_type.c_str()[0] == 'A'){
             num_reads++;
             gfa_file >> ignore >> ignore >> ignore >> read_id;
             // check if this read comes from a non-tumor sample
             if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) == std::end(tumor_ids)){
-                tumor = false;
+                normal = true;
+            }else if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) != std::end(tumor_ids)){
+                tumor = true;
             }
         }
         gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     // write last node if it's tumor
-    if (tumor and num_reads >= read_thresh){
-        out_unitigs << unitig << '\n';
-        out_fa << '>' << unitig << '\n' << segment << '\n';
+    if (tumor && !normal && num_reads >= read_thresh){
+        out_tumor_utg << unitig << '\n';
+        out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
     }
 
     // close input and output files
     gfa_file.close();
-    out_unitigs.close();
-    out_fa.close();
+    out_tumor_utg.close();
+    out_tumor_fa.close();
+
+    out_healthy_utg.close();
+    out_healthy_fa.close();
+
+    out_mixed_utg.close();
+    out_mixed_fa.close();
 
     return true;
 }
