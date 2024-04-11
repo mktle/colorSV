@@ -86,7 +86,8 @@ void print_help(){
     std::cout << "Commands and options:\n";
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
-    std::cout << "          --graph         STR     path to assembly graph file\n";
+    std::cout << "          --r_graph           STR     path to r_utg assembly graph file\n";
+    std::cout << "          --u_graph           STR     path to u_utg assembly graph file\n";
     std::cout << "          --reference     STR     path to reference genome file\n";
     std::cout << "          -t              INT     number of threads\n";
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
