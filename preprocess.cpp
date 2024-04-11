@@ -93,47 +93,52 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 
     gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    int num_reads{0};
-    bool tumor{false};
-    bool normal{false};
+    int num_tumor_reads{0};
+    int num_healthy_reads{0};
 
     while(gfa_file >> line_type){
         if (line_type.c_str()[0] == 'S'){
             // end of the node, so reset for the next node
             // first, write unitig info if this is a tumor-only node
-            if (tumor && !normal && num_reads >= read_thresh){
-                out_tumor_utg << unitig << '\n';
+            if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
+                out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
                 out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (!tumor && normal){
-                out_healthy_utg << unitig << '\n';
+            }else if (num_tumor_reads == 0 && num_healthy_reads > 0){
+                out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
                 out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (tumor && normal){
-                out_mixed_utg << unitig << '\n';
+            }else if (num_tumor_reads > 0 && num_healthy_reads > 0){
+                out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
                 out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
             }else{
-                assert(tumor && num_reads < read_thresh);
+                assert(num_tumor_reads > 0  && num_tumor_reads < read_thresh);
             }
             gfa_file >> unitig >> segment;
 
-            tumor = false;
-            normal = false;
-            num_reads = 0;
+            num_tumor_reads = 0;
+            num_healthy_reads = 0;
         }else if (line_type.c_str()[0] == 'A'){
-            num_reads++;
             gfa_file >> ignore >> ignore >> ignore >> read_id;
             // check if this read comes from a non-tumor sample
             if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) == std::end(tumor_ids)){
-                normal = true;
+                num_healthy_reads++;
             }else if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) != std::end(tumor_ids)){
-                tumor = true;
+                num_tumor_reads++;
             }
         }
         gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-    // write last node if it's tumor
-    if (tumor && !normal && num_reads >= read_thresh){
-        out_tumor_utg << unitig << '\n';
+
+    if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
+        out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
         out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+    }else if (num_tumor_reads == 0 && num_healthy_reads > 0){
+        out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
+        out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
+    }else if (num_tumor_reads > 0 && num_healthy_reads > 0){
+        out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
+        out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
+    }else{
+        assert(num_tumor_reads > 0  && num_tumor_reads < read_thresh);
     }
 
     // close input and output files
@@ -152,8 +157,16 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 
 bool preprocess::filter_regions(ArgumentParser& user_args){
     // alignment to reference
-    std::cout << "[PREPROCESS] aligning unitigs to reference genome\n\n";
+    std::cout << "[PREPROCESS] aligning tumor unitigs to reference genome\n\n";
     std::string cmd{"minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
+    system(cmd.c_str());
+
+    std::cout << "[PREPROCESS] aligning healthy unitigs to reference genome\n\n";
+    cmd = "minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs_aln.sam";
+    system(cmd.c_str());
+
+    std::cout << "[PREPROCESS] aligning mixed unitigs to reference genome\n\n";
+    cmd = "minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs_aln.sam";
     system(cmd.c_str());
 
     // filter unwanted regions
