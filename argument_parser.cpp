@@ -13,7 +13,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
         this->args.insert({"command", "--help"});
     }
     // first argument should indicate valid command; otherwise throw error
-    else if(std::strcmp(*(argv + 1), "preprocess") and std::strcmp(*(argv + 1), "snv") and std::strcmp(*(argv + 1), "translocation") and std::strcmp(*(argv + 1), "--help")){
+    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "translocation") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
         throw std::invalid_argument("Command not found, see sv-caller --help for valid commands");
     }else {
         // add the rest of the command-line options to map of args
@@ -60,6 +60,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
 bool ArgumentParser::check_required_flags(std::list<std::string>& r_flags){
     for (auto it = r_flags.begin(); it != r_flags.end(); it++){
         if (this->args.count(*it) == 0){
+            std::cout << "[ArgumentParser::check_required_flags][ERROR] missing required flag " << *it << '\n';
             // required flag not in args list
             return false;
         }
@@ -70,12 +71,12 @@ bool ArgumentParser::check_required_flags(std::list<std::string>& r_flags){
 bool ArgumentParser::check_file(std::string opt, std::string ext){
     struct stat buffer;   
     if (stat(this->args[opt].c_str(), &buffer) != 0){
-        std::cout << "[ERROR] file specified in " << opt << " is not readable\n";
+        std::cout << "[ArgumentParser::check_file][ERROR] file specified in " << opt << " is not readable\n";
         return false;
     }
 
     if (boost::filesystem::extension(this->args[opt]) != ext){
-        std::cout << "[ERROR] file specified in " << opt << " must be type " << ext << '\n';
+        std::cout << "[ArgumentParser::check_file][ERROR] file specified in " << opt << " must be type " << ext << '\n';
         return false;
     }
     return true;

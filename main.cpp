@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <fstream>
 #include <stdlib.h>
 
 int main(int argc, char* argv[]){
@@ -27,9 +28,19 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        if (!preprocess::filter_unitigs(input)){
+        std::cout << "[preprocess] filtering r_utg unitigs\n";
+
+        if (!preprocess::filter_unitigs(input, true)){
             return 1;
         }
+
+        std::cout << "[preprocess] filtering p_utg unitigs\n";
+
+        if (!preprocess::filter_unitigs(input, false)){
+            return 1;
+        }
+
+        std::cout << "[preprocess] filtering out specified genomic regions\n";
 
         if(!preprocess::filter_regions(input)){
             return 1;
@@ -48,14 +59,21 @@ int main(int argc, char* argv[]){
         if (!sv::check_args(input)){
             return 1;
         }
-        
+
+        if (!sv::call_cis_chrom_svs(input)){
+            return 1;
+        }
     } else {
         std::cout << "Undefined command\n";
     }
+    std::ofstream cmd_file(input.args["-o"] + "/command.txt");
+
     std::cout << "*************************\n";
     std::map<std::string, std::string> :: iterator it;
     for(it=input.args.begin();it !=input.args.end();++it){
         std::cout << it->first << ' ' <<it->second << '\n';
+        cmd_file << it->first << ' ' <<it->second << '\n';
     }
+    cmd_file.close();
     return 0;
 }
