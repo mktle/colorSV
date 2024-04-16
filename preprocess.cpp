@@ -37,6 +37,10 @@ bool preprocess::check_args(ArgumentParser& user_args){
         user_args.args.insert({"-t", "3"});
     }
 
+    if (user_args.args.count("--mixed-frac-thresh") == 0){
+        user_args.args.insert({"--mixed-frac-thresh", "0.5"});
+    }
+
     if (!user_args.check_file("--r_graph", ".gfa")){
         return false;
     }
@@ -97,7 +101,8 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     }
     tumor_ids.push_back(std::string(start, next));
 
-    int read_thresh{stoi(user_args.args["--min-reads"])};
+    int read_thresh{ std::stoi(user_args.args["--min-reads"]) };
+    float mixed_thresh{ std::stof(user_args.args["--mixed-frac-thresh"]) };
     if (!is_r_utg){
         // since p_utg is being used to remove false positives, allow all tumor-only unitigs regardless of number of reads
         read_thresh = 1;
@@ -130,10 +135,10 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
             if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
                 out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
                 out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (num_tumor_reads == 0 && num_healthy_reads > 0 && is_r_utg){
+            }else if (is_r_utg && num_tumor_reads == 0 && num_healthy_reads > 0){
                 out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
                 out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (num_tumor_reads > 0 && num_healthy_reads > 0 && is_r_utg){
+            }else if (is_r_utg && num_tumor_reads > 0 && num_healthy_reads > 0 && (float)num_healthy_reads/(float)(num_healthy_reads + num_tumor_reads) >= mixed_thresh){
                 out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
                 out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
             }
@@ -156,10 +161,10 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
         out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
         out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
-    }else if (num_tumor_reads == 0 && num_healthy_reads > 0 && is_r_utg){
+    }else if (is_r_utg && num_tumor_reads == 0 && num_healthy_reads > 0){
         out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
         out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
-    }else if (num_tumor_reads > 0 && num_healthy_reads > 0 && is_r_utg){
+    }else if (is_r_utg && num_tumor_reads > 0 && num_healthy_reads > 0 && (float)num_healthy_reads/(float)(num_healthy_reads + num_tumor_reads) >= mixed_thresh){
         out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
         out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
     }

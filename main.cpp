@@ -55,7 +55,7 @@ int main(int argc, char* argv[]){
         if (!snv::call_snvs(input)){
             return 1;
         }
-    } else if (input.args["command"] == "sv"){
+    }/* else if (input.args["command"] == "sv"){
         if (!sv::check_args(input)){
             return 1;
         }
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]){
         if (!sv::call_cis_chrom_svs(input)){
             return 1;
         }
-    } else {
+    }*/ else {
         std::cout << "Undefined command\n";
     }
     std::ofstream cmd_file(input.args["-o"] + "/command.txt");
