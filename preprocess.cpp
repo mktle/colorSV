@@ -37,10 +37,6 @@ bool preprocess::check_args(ArgumentParser& user_args){
         user_args.args.insert({"-t", "3"});
     }
 
-    if (user_args.args.count("--mixed-frac-thresh") == 0){
-        user_args.args.insert({"--mixed-frac-thresh", "0.5"});
-    }
-
     if (!user_args.check_file("--r_graph", ".gfa")){
         return false;
     }
@@ -64,24 +60,13 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
 
     std::ofstream out_tumor_utg;
     std::ofstream out_tumor_fa;
-    std::ofstream out_healthy_utg;
-    std::ofstream out_healthy_fa;
-    std::ofstream out_mixed_utg;
-    std::ofstream out_mixed_fa;
 
     // open input and output files
     if(is_r_utg){
         gfa_file.open(user_args.args["--r_graph"]);
         out_tumor_utg.open(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
         out_tumor_fa.open(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
-
-        out_healthy_utg.open(user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.txt");
-        out_healthy_fa.open(user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.fa");
-
-        out_mixed_utg.open(user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.txt");
-        out_mixed_fa.open(user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.fa");
     }else{
-        // only need tumor unitigs for p_utg
         gfa_file.open(user_args.args["--p_graph"]);
 
         out_tumor_utg.open(user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.txt");
@@ -102,7 +87,6 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     tumor_ids.push_back(std::string(start, next));
 
     int read_thresh{ std::stoi(user_args.args["--min-reads"]) };
-    float mixed_thresh{ std::stof(user_args.args["--mixed-frac-thresh"]) };
     if (!is_r_utg){
         // since p_utg is being used to remove false positives, allow all tumor-only unitigs regardless of number of reads
         read_thresh = 1;
@@ -135,13 +119,8 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
             if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
                 out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
                 out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (is_r_utg && num_tumor_reads == 0 && num_healthy_reads > 0){
-                out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
-                out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
-            }else if (is_r_utg && num_tumor_reads > 0 && num_healthy_reads > 0 && (float)num_healthy_reads/(float)(num_healthy_reads + num_tumor_reads) >= mixed_thresh){
-                out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
-                out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
             }
+
             gfa_file >> unitig >> segment;
 
             num_tumor_reads = 0;
@@ -149,10 +128,10 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
         }else if (line_type.c_str()[0] == 'A'){
             gfa_file >> ignore >> ignore >> ignore >> read_id;
             // check if this read comes from a non-tumor sample
-            if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) == std::end(tumor_ids)){
-                num_healthy_reads++;
-            }else if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) != std::end(tumor_ids)){
+            if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) != std::end(tumor_ids)){
                 num_tumor_reads++;
+            }else{
+                num_healthy_reads++;
             }
         }
         gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -161,26 +140,12 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
         out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
         out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
-    }else if (is_r_utg && num_tumor_reads == 0 && num_healthy_reads > 0){
-        out_healthy_utg << unitig << ' ' << num_healthy_reads << '\n';
-        out_healthy_fa << '>' << unitig << '\n' << segment << '\n';
-    }else if (is_r_utg && num_tumor_reads > 0 && num_healthy_reads > 0 && (float)num_healthy_reads/(float)(num_healthy_reads + num_tumor_reads) >= mixed_thresh){
-        out_mixed_utg << unitig << ' ' << num_tumor_reads << ' ' << num_healthy_reads << '\n';
-        out_mixed_fa << '>' << unitig << '\n' << segment << '\n';
     }
 
     // close input and output files
     gfa_file.close();
     out_tumor_utg.close();
     out_tumor_fa.close();
-
-    if(is_r_utg){
-        out_healthy_utg.close();
-        out_healthy_fa.close();
-
-        out_mixed_utg.close();
-        out_mixed_fa.close();
-    }
 
     return true;
 }
@@ -189,14 +154,6 @@ bool preprocess::filter_regions(ArgumentParser& user_args){
     // alignment to reference
     std::cout << "[preprocess::filter_regions] aligning tumor unitigs to reference genome\n\n";
     std::string cmd{"minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
-    system(cmd.c_str());
-
-    std::cout << "[preprocess::filter_regions] aligning healthy unitigs to reference genome\n\n";
-    cmd = "minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/healthy_only_unitigs_aln.sam";
-    system(cmd.c_str());
-
-    std::cout << "[preprocess::filter_regions] aligning mixed unitigs to reference genome\n\n";
-    cmd = "minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/mixed_only_unitigs_aln.sam";
     system(cmd.c_str());
 
     std::cout << "[preprocess::filter_regions] aligning p_utg unitigs to reference genome\n\n";
