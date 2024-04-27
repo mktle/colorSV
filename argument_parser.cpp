@@ -13,7 +13,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
         this->args.insert({"command", "--help"});
     }
     // first argument should indicate valid command; otherwise throw error
-    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "translocation") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
+    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "call") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
         throw std::invalid_argument("Command not found, see sv-caller --help for valid commands");
     }else {
         // add the rest of the command-line options to map of args

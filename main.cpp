@@ -1,13 +1,13 @@
 #include "argument_parser.h"
 #include "preprocess.h"
-#include "snv.h"
-#include "sv.h"
+#include "topology_search.h"
 
 #include <cstring>
 #include <iostream>
-#include <map>
 #include <fstream>
+#include <map>
 #include <stdlib.h>
+#include <unordered_map>
 
 int main(int argc, char* argv[]){
     ArgumentParser input(argc, argv);
@@ -45,32 +45,22 @@ int main(int argc, char* argv[]){
         if(!preprocess::filter_regions(input)){
             return 1;
         }
-    } else if (input.args["command"] == "snv"){
-        if (!snv::check_args(input)){
+    }else if (input.args["command"] == "call"){
+        if (!topology_search::check_args(input)){
             return 1;
         }
-        if (!snv::run_pileup(input)){
+        std::unordered_map<int, std::streampos> link_index;
+        if (!topology_search::index_link_file(input, link_index)){
             return 1;
         }
-        if (!snv::call_snvs(input)){
-            return 1;
-        }
-    }/* else if (input.args["command"] == "sv"){
-        if (!sv::check_args(input)){
-            return 1;
-        }
-
-        if (!sv::call_cis_chrom_svs(input)){
-            return 1;
-        }
-    }*/ else {
+    }else{
         std::cout << "Undefined command\n";
     }
     std::ofstream cmd_file(input.args["-o"] + "/command.txt");
 
     std::cout << "*************************\n";
     std::map<std::string, std::string> :: iterator it;
-    for(it=input.args.begin();it !=input.args.end();++it){
+    for (it=input.args.begin();it !=input.args.end();++it){
         std::cout << it->first << ' ' <<it->second << '\n';
         cmd_file << it->first << ' ' <<it->second << '\n';
     }
