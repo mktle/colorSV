@@ -1,11 +1,11 @@
 #include "argument_parser.h"
 #include "topology_search.h"
 
+#include <assert.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <sstream>
-#include <string>
 
 /* Checks that the user input all required flags */
 bool topology_search::check_args(ArgumentParser& user_args){
@@ -33,8 +33,8 @@ bool topology_search::check_args(ArgumentParser& user_args){
 bool topology_search::index_link_file(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table){
 
     std::ifstream link_file(user_args.args["--r_graph"]);
+    int bin_size {std::stoi(user_args.args["--index_bin_size"])};
 
-    std::streampos stream_loc;
     char line_type;
     std::string line_info;
 
@@ -49,20 +49,41 @@ bool topology_search::index_link_file(ArgumentParser& user_args, std::unordered_
         }
     }
 
-    // record the start of the links location
-    stream_loc = link_file.tellg();
-    index_table[1] = stream_loc;
-    link_file.close();
+    // record the file position of every kth unitig, where k is the --index-bin_size argument
+    while (link_file >> line_type){
+        link_file >> line_info;
+        int id {topology_search::utg_to_int(line_info)};
 
-    std::ifstream test_stream(user_args.args["--r_graph"]);
-    test_stream.seekg(index_table[1]);
+        // check if this the kth unitig; if so, record the location
+        if (id % bin_size == 1){
+            index_table[id] = link_file.tellg();
 
-    for (int i {0}; i < 5; i++){
-        test_stream >> line_info;
-        std::cout << line_info << ' ';
+            link_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            // skip past the lines with the same unitig so we don't record the same unitig again
+            while (link_file >> line_type){
+                link_file >> line_info;
+                int next_id {topology_search::utg_to_int(line_info)};
+                if (next_id == id){
+                    // still on the same unitig, so skip to next line
+                    link_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }else{
+                    // on a new unitig, so can go back to original loop of checking unitig IDs
+                    break;
+                }
+            }
+        }
+        // this will technically mean we skip over the next line after a recorded unitig
+        // in practice, shouldn't matter because the recorded unitigs should not be consecutive
+        link_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-    std::cout << '\n';
-    link_file.close();
 
+    link_file.close();
     return true;
+}
+
+// converts unitig ID to integer representation
+// e.g., utg000016l becomes 16
+int topology_search::utg_to_int(std::string& utg_id){
+    // trim the "utg" at the beginning and the "l" at the end
+    return std::stoi(utg_id.substr(3, utg_id.length() - 4));
 }

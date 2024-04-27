@@ -49,6 +49,7 @@ int main(int argc, char* argv[]){
         if (!topology_search::check_args(input)){
             return 1;
         }
+
         std::unordered_map<int, std::streampos> link_index;
         if (!topology_search::index_link_file(input, link_index)){
             return 1;
