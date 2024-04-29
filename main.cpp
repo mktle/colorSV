@@ -40,9 +40,9 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        std::cout << "[preprocess] filtering out specified genomic regions\n";
+        std::cout << "[preprocess] performing unitig alignment\n";
 
-        if(!preprocess::filter_regions(input)){
+        if(!preprocess::align_unitigs(input)){
             return 1;
         }
     }else if (input.args["command"] == "call"){

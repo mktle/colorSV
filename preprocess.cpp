@@ -150,27 +150,15 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     return true;
 }
 
-bool preprocess::filter_regions(ArgumentParser& user_args){
-    // alignment to reference
-    std::cout << "[preprocess::filter_regions] aligning tumor unitigs to reference genome\n\n";
-    std::string cmd{"minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam"};
+bool preprocess::align_unitigs(ArgumentParser& user_args){
+    // r_utg tumor-only unitig  alignment to reference
+    std::cout << "[preprocess::align_unitigs] aligning r_utg tumor unitigs to reference genome\n\n";
+    std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
     system(cmd.c_str());
 
-    std::cout << "[preprocess::filter_regions] aligning p_utg unitigs to reference genome\n\n";
-    cmd = "minimap2 -ax map-hifi -s50 -t " + user_args.args["-t"] + " " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.fa -o " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs_aln.sam";
-    system(cmd.c_str());
-
-    // filter unwanted regions
-    if (user_args.args.count("--filter") > 0){
-        std::cout << "\n[preprocess::filter_regions] filtering out regions in " << user_args.args["--filter"] << "\n";
-        cmd = "samtools view -h -L " + user_args.args["--filter"] + " -U " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam -o /dev/null " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam";
-    }else{
-        cmd = "mv " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_aln.sam " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam";
-    }
-    system(cmd.c_str());
-
-    // sort final result
-    cmd = "samtools view -bS " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.sam | samtools sort -o " + user_args.args["-o"] + "/intermediate_output/filtered_unitigs_aln.srt.bam -@" + user_args.args["-t"] + "-m4g ";
+    // p_utg tumor-only unitig  alignment to reference
+    std::cout << "[preprocess::align_unitigs] aligning p_utg tumor-only unitigs to reference genome\n\n";
+    cmd = "./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.paf";
     system(cmd.c_str());
     return true;
 }
