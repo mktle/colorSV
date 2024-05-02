@@ -55,9 +55,10 @@ int main(int argc, char* argv[]){
     }else{
         std::cout << "Undefined command\n";
     }
-    std::ofstream cmd_file(input.args["-o"] + "/command.txt");
+    std::ofstream cmd_file(input.args["-o"] + "/command.txt", std::ios_base::app);
 
     std::cout << "*************************\n";
+    cmd_file << "*************************\n";
     std::map<std::string, std::string> :: iterator it;
     for (it=input.args.begin();it !=input.args.end();++it){
         std::cout << it->first << ' ' <<it->second << '\n';

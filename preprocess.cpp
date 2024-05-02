@@ -37,6 +37,10 @@ bool preprocess::check_args(ArgumentParser& user_args){
         user_args.args.insert({"-t", "3"});
     }
 
+    if (user_args.args.count("--min-mapq") == 0){
+        user_args.args.insert({"--min-mapq", "10"});
+    }
+
     if (!user_args.check_file("--r_graph", ".gfa")){
         return false;
     }
@@ -148,8 +152,13 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
 
 bool preprocess::align_unitigs(ArgumentParser& user_args){
     // r_utg tumor-only unitig alignment to reference
+
     std::cout << "[preprocess::align_unitigs] aligning r_utg tumor unitigs to reference genome\n\n";
     std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
+    system(cmd.c_str());
+
+    // filter to only keep alignments with minimum MAPQ score
+    cmd = "awk '$12 >= " + user_args.args["--min-mapq"] + "' " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_mapq_filtered.paf";
     system(cmd.c_str());
 
     return true;

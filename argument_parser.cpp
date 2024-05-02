@@ -93,15 +93,8 @@ void print_help(){
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
+    std::cout << "          --min-mapq      INT     minimum MAPQ required for tumor-only unitig alignments (default 10)\n";
     std::cout << "          --filter        STR     path to files with regions to filter (e.g., centromeres)\n";
-    std::cout << "  * snv\n";
-    std::cout << "     [optional flags] \n";
-    std::cout << "          --frac          FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
-    std::cout << "          --normal-reads  STR     path to .bam file with normal reads\n";
-    std::cout << "          --pileup        STR     path to existing pileup file\n";
-    std::cout << "          --reference     STR     path to reference genome file\n";
-    std::cout << "          --tumor-reads   STR     path to .bam file with tumor reads\n";
-    std::cout << "          -m              INT     minimum number of supporting tumor reads (default 10)\n";
     std::cout << "  * translocation\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph         STR     path to assembly graph file\n";
