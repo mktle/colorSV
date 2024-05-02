@@ -151,14 +151,10 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
 }
 
 bool preprocess::align_unitigs(ArgumentParser& user_args){
-    // r_utg tumor-only unitig  alignment to reference
+    // r_utg tumor-only unitig alignment to reference
     std::cout << "[preprocess::align_unitigs] aligning r_utg tumor unitigs to reference genome\n\n";
     std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
     system(cmd.c_str());
 
-    // p_utg tumor-only unitig  alignment to reference
-    std::cout << "[preprocess::align_unitigs] aligning p_utg tumor-only unitigs to reference genome\n\n";
-    cmd = "./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.paf";
-    system(cmd.c_str());
     return true;
 }

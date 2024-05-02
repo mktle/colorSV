@@ -34,12 +34,6 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        std::cout << "[preprocess] filtering p_utg unitigs\n";
-
-        if (!preprocess::filter_unitigs(input, false)){
-            return 1;
-        }
-
         std::cout << "[preprocess] performing unitig alignment\n";
 
         if(!preprocess::align_unitigs(input)){
@@ -52,6 +46,10 @@ int main(int argc, char* argv[]){
 
         std::unordered_map<int, std::streampos> link_index;
         if (!topology_search::index_link_file(input, link_index)){
+            return 1;
+        }
+
+        if (!topology_search::run_topology_search(input)){
             return 1;
         }
     }else{
