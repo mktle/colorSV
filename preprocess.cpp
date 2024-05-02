@@ -23,7 +23,7 @@ bool preprocess::file_setup(ArgumentParser& user_args){
 /* Checks that the user input all required flags */
 bool preprocess::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> preprocess_required {"-o", "--r_graph", "--p_graph", "--tumor-ids", "--reference", "-t"};
+    std::list<std::string> preprocess_required {"-o", "--r_graph", "--tumor-ids", "--reference", "-t"};
     if (!user_args.check_required_flags(preprocess_required)){
         return false;
     }
@@ -38,10 +38,6 @@ bool preprocess::check_args(ArgumentParser& user_args){
     }
 
     if (!user_args.check_file("--r_graph", ".gfa")){
-        return false;
-    }
-
-    if (!user_args.check_file("--p_graph", ".gfa")){
         return false;
     }
 
