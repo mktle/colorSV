@@ -13,7 +13,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
         this->args.insert({"command", "--help"});
     }
     // first argument should indicate valid command; otherwise throw error
-    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "translocation") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
+    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "call") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
         throw std::invalid_argument("Command not found, see sv-caller --help for valid commands");
     }else {
         // add the rest of the command-line options to map of args
@@ -88,21 +88,13 @@ void print_help(){
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --r_graph           STR     path to r_utg assembly graph file\n";
-    std::cout << "          --u_graph           STR     path to u_utg assembly graph file\n";
     std::cout << "          --reference     STR     path to reference genome file\n";
     std::cout << "          -t              INT     number of threads\n";
     std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
+    std::cout << "          --min-mapq      INT     minimum MAPQ required for tumor-only unitig alignments (default 10)\n";
     std::cout << "          --filter        STR     path to files with regions to filter (e.g., centromeres)\n";
-    std::cout << "  * snv\n";
-    std::cout << "     [optional flags] \n";
-    std::cout << "          --frac          FLOAT   minimum fraction of tumor reads supporting alt allele (default 0.1)\n";
-    std::cout << "          --normal-reads  STR     path to .bam file with normal reads\n";
-    std::cout << "          --pileup        STR     path to existing pileup file\n";
-    std::cout << "          --reference     STR     path to reference genome file\n";
-    std::cout << "          --tumor-reads   STR     path to .bam file with tumor reads\n";
-    std::cout << "          -m              INT     minimum number of supporting tumor reads (default 10)\n";
     std::cout << "  * translocation\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph         STR     path to assembly graph file\n";
