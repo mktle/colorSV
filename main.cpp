@@ -69,6 +69,9 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
+        std::string cmd{"mgutils-es6.js getsv -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        system(cmd.c_str());
+
     }else{
         std::cout << "Undefined command\n";
     }

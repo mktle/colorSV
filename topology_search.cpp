@@ -12,7 +12,7 @@
 /* Checks that the user input all required flags */
 bool topology_search::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> required {"-o", "--r_graph"};
+    std::list<std::string> required {"-o", "--r_graph", "--filter"};
     if (!user_args.check_required_flags(required)){
         return false;
     }
@@ -227,7 +227,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
         }
         if (!to_remove){
             result.insert(target_utg);
-            std::cout << target_utg << '\n';
         }
         cand_idx += 1;
         if (cand_idx % 50 == 0){
