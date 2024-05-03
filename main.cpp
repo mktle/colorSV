@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <iterator>
 #include <fstream>
 #include <map>
 #include <stdlib.h>
@@ -49,9 +50,20 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        if (!topology_search::run_topology_search(input)){
+        std::unordered_set<std::string> candidate_utgs;
+        if (!topology_search::get_split_alignments(input, candidate_utgs)){
             return 1;
         }
+
+        std::cout << "[call] number of candidate unitigs before topology search: " << candidate_utgs.size() << '\n';
+
+        std::unordered_set<std::string> final_svs;
+        if (!topology_search::run_topology_search(input, link_index, candidate_utgs, final_svs)){
+            return 1;
+        }
+
+        std::cout << "[call] number of unitigs that pass all filters: " << final_svs.size() << '\n';
+
     }else{
         std::cout << "Undefined command\n";
     }
