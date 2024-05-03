@@ -57,6 +57,8 @@ int main(int argc, char* argv[]){
 
         std::cout << "[call] number of candidate unitigs before topology search: " << candidate_utgs.size() << '\n';
 
+        std::cout << "[call] running topology search...\n";
+
         std::unordered_set<std::string> final_svs;
         if (!topology_search::run_topology_search(input, link_index, candidate_utgs, final_svs)){
             return 1;

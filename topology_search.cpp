@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <queue>
 #include <sstream>
 
 /* Checks that the user input all required flags */
@@ -25,7 +26,7 @@ bool topology_search::check_args(ArgumentParser& user_args){
     }
 
     if (user_args.args.count("--index_bin_size") == 0){
-        user_args.args.insert({"--index_bin_size", "10000"});
+        user_args.args.insert({"--index_bin_size", "100"});
     }
     return true;
 }
@@ -151,15 +152,16 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
 
 bool topology_search::run_topology_search(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table, std::unordered_set<std::string>& candidates, std::unordered_set<std::string>& result){
 
+    int max_steps {std::stoi(user_args.args["-k"])};
     int bin_size {std::stoi(user_args.args["--index_bin_size"])};
     std::ifstream link_file(user_args.args["--r_graph"]);
 
     // run topology search on every candidate by iterating through the set
     std::unordered_set<std::string>::iterator itr;
+    int cand_idx = 0;
     for (itr = candidates.begin(); itr != candidates.end(); itr++){
 
         std::string target_utg {*itr};
-        std::cout << target_utg << '\n';
 
         // track the target unitig's neighbors, since we want to check if they can reach each other without the target
         std::unordered_set<std::string> target_neighbors;
@@ -168,14 +170,70 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
             continue;
         }
 
-        /*
-        std::unordered_set<std::string>::iterator itr2;
-        for (itr2 = target_neighbors.begin(); itr2 != target_neighbors.end(); itr2++){
-            std::cout << *itr2 << '\n';
-        }
-        assert(0);
-        */
+        // mark all candidates as "seen" because we only want to see if paths between neighbors exist without any candidate unitigs
+        std::unordered_set<std::string> seen_nodes;
+        seen_nodes.insert(candidates.begin(), candidates.end());
 
+        // run BFS for k steps from one neighbor and see if we can get to all of the other neighbors
+        std::string start_node {*target_neighbors.begin()};
+        target_neighbors.erase(start_node);
+        seen_nodes.insert(start_node);
+
+        std::queue<std::string> to_traverse;
+        // start traveling at a random neighbor
+        to_traverse.push(start_node);
+        // use '*' to separate search layers (so we can keep track of distance)
+        to_traverse.push("*");
+
+        int steps_taken {0};
+        int num_neighbors_seen {0};
+        bool to_remove {false};
+        while (steps_taken <= max_steps){
+            // get next node to explore
+            std::string node {to_traverse.front()};
+            to_traverse.pop();
+
+            if (node == "*"){
+                // we've reached the end of one search layer
+                steps_taken++;
+                to_traverse.push("*");
+            }else{
+                // check if this node is one of the target's neighbors
+                if (target_neighbors.count(node)){
+                    num_neighbors_seen += 1;
+                    if (num_neighbors_seen == (int)target_neighbors.size()){
+                        // successfully found a local path without candidate utgs
+                        // so mark as a false positive
+                        to_remove = true;
+                        break;
+                    }
+                }
+
+                // get current node's neighbors
+                std::unordered_set<std::string> curr_neighbors;
+                if (!get_neighbors(node, link_file, curr_neighbors, bin_size, index_table)){
+                    std::cout << "[topology_search::run_topology_search][ERROR] error parsing link file when getting neighbors for " << node << '\n';
+                    return false;
+                }
+            
+                // add current node's neighbors to queue if they haven't already been explored
+                std::unordered_set<std::string>::iterator itr2;
+                for (itr2 = curr_neighbors.begin(); itr2 != curr_neighbors.end(); itr2++){
+                    if (!seen_nodes.count(*itr2)){
+                        to_traverse.push(*itr2);
+                        seen_nodes.insert(*itr);
+                    }
+                }
+            }
+        }
+        if (!to_remove){
+            result.insert(target_utg);
+            std::cout << target_utg << '\n';
+        }
+        cand_idx += 1;
+        if (cand_idx % 50 == 0){
+            std::cout << "[topology_search::run_topology_search] " << cand_idx << '/' << candidates.size() << " candidates checked\n";
+        }
     }
     return true;
 }
