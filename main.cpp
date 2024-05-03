@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
 
         std::cout << "[call] number of candidate unitigs before topology search: " << candidate_utgs.size() << '\n';
 
-        std::cout << "[call] running topology search...\n";
+        std::cout << "[call] running topology search... if this is too slow, consider decreasing the value of --index-bin-size\n";
 
         std::unordered_set<std::string> final_svs;
         if (!topology_search::run_topology_search(input, link_index, candidate_utgs, final_svs)){
@@ -65,6 +65,9 @@ int main(int argc, char* argv[]){
         }
 
         std::cout << "[call] number of unitigs that pass all filters: " << final_svs.size() << '\n';
+        if (!topology_search::write_final_paf(input, final_svs)){
+            return 1;
+        }
 
     }else{
         std::cout << "Undefined command\n";

@@ -25,8 +25,8 @@ bool topology_search::check_args(ArgumentParser& user_args){
         user_args.args.insert({"-k", "10"});
     }
 
-    if (user_args.args.count("--index_bin_size") == 0){
-        user_args.args.insert({"--index_bin_size", "100"});
+    if (user_args.args.count("--index-bin-size") == 0){
+        user_args.args.insert({"--index-bin-size", "100"});
     }
     return true;
 }
@@ -35,7 +35,7 @@ bool topology_search::check_args(ArgumentParser& user_args){
 bool topology_search::index_link_file(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table){
 
     std::ifstream link_file(user_args.args["--r_graph"]);
-    int bin_size {std::stoi(user_args.args["--index_bin_size"])};
+    int bin_size {std::stoi(user_args.args["--index-bin-size"])};
 
     char line_type;
     std::string line_info;
@@ -93,7 +93,6 @@ int topology_search::utg_to_int(std::string& utg_id){
 bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unordered_set<std::string>& candidates){
     // TODO: refactor alignment type parsing
     std::ifstream in_file(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs_mapq_filtered.paf");
-    std::ofstream out_file(user_args.args["-o"] + "/intermediate_output/sv_calls_utg_ids.paf");
 
     std::string prev_unitig;
     std::string unitig_id;
@@ -153,7 +152,7 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
 bool topology_search::run_topology_search(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table, std::unordered_set<std::string>& candidates, std::unordered_set<std::string>& result){
 
     int max_steps {std::stoi(user_args.args["-k"])};
-    int bin_size {std::stoi(user_args.args["--index_bin_size"])};
+    int bin_size {std::stoi(user_args.args["--index-bin-size"])};
     std::ifstream link_file(user_args.args["--r_graph"]);
 
     // run topology search on every candidate by iterating through the set
@@ -287,4 +286,21 @@ bool topology_search::get_neighbors(std::string& target_utg, std::ifstream& link
         link_file.clear(state);
     }
     return found_utg;
+}
+
+bool topology_search::write_final_paf(ArgumentParser& args, std::unordered_set<std::string>& sv_set){
+    std::ifstream orig_paf(args.args["-o"] + "/intermediate_output/tumor_only_unitigs_mapq_filtered.paf");
+    std::ofstream new_paf(args.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf");
+
+    std::string line;
+    while (std::getline(orig_paf, line)){
+        std::istringstream iss(line);
+        std::string id;
+        iss >> id;
+        // copy old PAF line to new file if it belongs to a candidate unitig
+        if (sv_set.count(id)){
+            new_paf << line << '\n';
+        }
+    }
+    return true;
 }
