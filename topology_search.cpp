@@ -243,7 +243,7 @@ bool topology_search::get_neighbors(std::string& target_utg, std::ifstream& link
     int utg_int_id {utg_to_int(target_utg)};
 
     // round current utg ID down to the beginning of the current bin to get lookup index
-    int link_index {(utg_int_id/bin_size)*bin_size + 1};
+    int link_index {((utg_int_id - 1)/bin_size)*bin_size + 1};
 
     // jump to unitig location in link file
     link_file.seekg(index_table[link_index], std::ios::beg);
