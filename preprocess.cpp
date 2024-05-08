@@ -38,7 +38,7 @@ bool preprocess::check_args(ArgumentParser& user_args){
     }
 
     if (user_args.args.count("--min-mapq") == 0){
-        user_args.args.insert({"--min-mapq", "20"});
+        user_args.args.insert({"--min-mapq", "10"});
     }
 
     if (!user_args.check_file("--r_graph", ".gfa")){

@@ -111,7 +111,7 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
 
     // double check we're on the right tag
     if (line_info.substr(0, 2) != "tp"){
-        std::cout << "[topology_search::get_split_alignments][ERROR] unexpected formatting when parsing tumor-only unitig alignment file\n";
+        std::cout << "[topology_search::get_split_alignments][ERROR] unexpected formatting when parsing tumor-only unitig alignment file; expected tp field but got " << line_info.substr(0, 2) << "\n";
         return false;
     }
     if (line_info.back() == 'P'){
@@ -139,6 +139,7 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
         // double check we're on the right tag
         if (line_info.substr(0, 2) != "tp"){
             std::cout << "[topology_search::get_split_alignments][ERROR] unexpected formatting when parsing tumor-only unitig alignment file\n";
+            std::cout << unitig_id << '\n';
             return false;
         }
         if (line_info.back() == 'P'){
@@ -151,6 +152,8 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
 
 bool topology_search::run_topology_search(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table, std::unordered_set<std::string>& candidates, std::unordered_set<std::string>& result){
 
+    std::ofstream removed_file(user_args.args["-o"] + "/intermediate_output/removed_unitigs_topology_search.txt");
+
     int max_steps {std::stoi(user_args.args["-k"])};
     int bin_size {std::stoi(user_args.args["--index-bin-size"])};
     std::ifstream link_file(user_args.args["--r_graph"]);
@@ -159,7 +162,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
     std::unordered_set<std::string>::iterator itr;
     int cand_idx = 0;
     for (itr = candidates.begin(); itr != candidates.end(); itr++){
-
         std::string target_utg {*itr};
 
         // track the target unitig's neighbors, since we want to check if they can reach each other without the target
@@ -174,6 +176,7 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
         seen_nodes.insert(candidates.begin(), candidates.end());
 
         // run BFS for k steps from one neighbor and see if we can get to all of the other neighbors
+
         std::string start_node {*target_neighbors.begin()};
         target_neighbors.erase(start_node);
         seen_nodes.insert(start_node);
@@ -218,14 +221,17 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
                 // add current node's neighbors to queue if they haven't already been explored
                 std::unordered_set<std::string>::iterator itr2;
                 for (itr2 = curr_neighbors.begin(); itr2 != curr_neighbors.end(); itr2++){
-                    if (!seen_nodes.count(*itr2)){
-                        to_traverse.push(*itr2);
-                        seen_nodes.insert(*itr);
+                    std::string neigh{*itr2};
+                    if (!seen_nodes.count(neigh)){
+                        to_traverse.push(neigh);
+                        seen_nodes.insert(neigh);
                     }
                 }
             }
         }
-        if (!to_remove){
+        if (to_remove){
+            removed_file << target_utg << '\n';
+        }else{
             result.insert(target_utg);
         }
         cand_idx += 1;

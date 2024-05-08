@@ -69,7 +69,19 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        std::string cmd{"mgutils-es6.js getsv -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        // use mgutils to extract long INDELs and breakpoints
+        std::string cmd{"mgutils-es6.js getsv -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        system(cmd.c_str());
+
+        // extract translocations
+        cmd = "awk '$3~/[><]/&&$1!=$4' " + input.args["-o"] + "/sv_calls.sv > " + input.args["-o"] + "/translocations.sv";
+        system(cmd.c_str());
+
+        // remove centromere regions
+        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/sv_calls.sv > " + input.args["-o"] + "/sv_calls_cen_filtered.sv";
+        system(cmd.c_str());
+
+        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/translocations.sv > " + input.args["-o"] + "/translocations_cen_filtered.sv";
         system(cmd.c_str());
 
     }else{
