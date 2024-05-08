@@ -16,6 +16,7 @@ namespace topology_search{
 	bool get_neighbors(std::string& target_utg, std::ifstream& link_file, std::unordered_set<std::string>& neighbor_list, int bin_size, std::unordered_map<int, std::streampos>& index_table);
 
 	bool write_final_paf(ArgumentParser& args, std::unordered_set<std::string>& sv_set);
+	bool direct_neighbors_check(std::unordered_set<std::string>& to_check, std::ifstream& link_file, int bin_size, std::unordered_map<int, std::streampos>& index_table);
 }
 
 #endif

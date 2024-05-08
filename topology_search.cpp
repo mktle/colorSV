@@ -163,6 +163,7 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
     int cand_idx = 0;
     for (itr = candidates.begin(); itr != candidates.end(); itr++){
         std::string target_utg {*itr};
+        bool to_remove {false};
 
         // track the target unitig's neighbors, since we want to check if they can reach each other without the target
         std::unordered_set<std::string> target_neighbors;
@@ -171,64 +172,71 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
             continue;
         }
 
-        // mark all candidates as "seen" because we only want to see if paths between neighbors exist without any candidate unitigs
-        std::unordered_set<std::string> seen_nodes;
-        seen_nodes.insert(candidates.begin(), candidates.end());
+        // check for the special case where all neighbors are neighbors of each other
+        // if they are, then we should not mark this is a false positive
+        // so then we can skip the topology search
+        if (!direct_neighbors_check(target_neighbors, link_file, bin_size, index_table)){
+            if (target_utg == "utg215097l"){
+                assert(0);
+            }
+            // mark all candidates as "seen" because we only want to see if paths between neighbors exist without any candidate unitigs
+            std::unordered_set<std::string> seen_nodes;
+            seen_nodes.insert(candidates.begin(), candidates.end());
 
-        // run BFS for k steps from one neighbor and see if we can get to all of the other neighbors
+            // run BFS for k steps from one neighbor and see if we can get to all of the other neighbors
+            std::string start_node {*target_neighbors.begin()};
+            target_neighbors.erase(start_node);
+            seen_nodes.insert(start_node);
 
-        std::string start_node {*target_neighbors.begin()};
-        target_neighbors.erase(start_node);
-        seen_nodes.insert(start_node);
+            std::queue<std::string> to_traverse;
+            // start traveling at a random neighbor
+            to_traverse.push(start_node);
+            // use '*' to separate search layers (so we can keep track of distance)
+            to_traverse.push("*");
 
-        std::queue<std::string> to_traverse;
-        // start traveling at a random neighbor
-        to_traverse.push(start_node);
-        // use '*' to separate search layers (so we can keep track of distance)
-        to_traverse.push("*");
+            int steps_taken {0};
+            int num_neighbors_seen {0};
+            while (steps_taken <= max_steps){
+                // get next node to explore
+                std::string node {to_traverse.front()};
+                to_traverse.pop();
 
-        int steps_taken {0};
-        int num_neighbors_seen {0};
-        bool to_remove {false};
-        while (steps_taken <= max_steps){
-            // get next node to explore
-            std::string node {to_traverse.front()};
-            to_traverse.pop();
-
-            if (node == "*"){
-                // we've reached the end of one search layer
-                steps_taken++;
-                to_traverse.push("*");
-            }else{
-                // check if this node is one of the target's neighbors
-                if (target_neighbors.count(node)){
-                    num_neighbors_seen += 1;
-                    if (num_neighbors_seen == (int)target_neighbors.size()){
-                        // successfully found a local path without candidate utgs
-                        // so mark as a false positive
-                        to_remove = true;
-                        break;
+                if (node == "*"){
+                    // we've reached the end of one search layer
+                    steps_taken++;
+                    to_traverse.push("*");
+                }else{
+                    // check if this node is one of the target's neighbors
+                    if (target_neighbors.count(node)){
+                        num_neighbors_seen += 1;
+                        if (num_neighbors_seen == (int)target_neighbors.size()){
+                            // successfully found a local path without candidate utgs
+                            // so mark as a false positive
+                            to_remove = true;
+                            break;
+                        }
                     }
-                }
 
-                // get current node's neighbors
-                std::unordered_set<std::string> curr_neighbors;
-                if (!get_neighbors(node, link_file, curr_neighbors, bin_size, index_table)){
-                    std::cout << "[topology_search::run_topology_search][ERROR] error parsing link file when getting neighbors for " << node << '\n';
-                    return false;
-                }
-            
-                // add current node's neighbors to queue if they haven't already been explored
-                std::unordered_set<std::string>::iterator itr2;
-                for (itr2 = curr_neighbors.begin(); itr2 != curr_neighbors.end(); itr2++){
-                    std::string neigh{*itr2};
-                    if (!seen_nodes.count(neigh)){
-                        to_traverse.push(neigh);
-                        seen_nodes.insert(neigh);
+                    // get current node's neighbors
+                    std::unordered_set<std::string> curr_neighbors;
+                    if (!get_neighbors(node, link_file, curr_neighbors, bin_size, index_table)){
+                        std::cout << "[topology_search::run_topology_search][ERROR] error parsing link file when getting neighbors for " << node << '\n';
+                        return false;
+                    }
+                
+                    // add current node's neighbors to queue if they haven't already been explored
+                    std::unordered_set<std::string>::iterator itr3;
+                    for (itr3 = curr_neighbors.begin(); itr3 != curr_neighbors.end(); itr3++){
+                        std::string neigh{*itr3};
+                        if (!seen_nodes.count(neigh)){
+                            to_traverse.push(neigh);
+                            seen_nodes.insert(neigh);
+                        }
                     }
                 }
             }
         }
+
         if (to_remove){
             removed_file << target_utg << '\n';
         }else{
@@ -308,4 +316,30 @@ bool topology_search::write_final_paf(ArgumentParser& args, std::unordered_set<s
         }
     }
     return true;
+}
+
+bool topology_search::direct_neighbors_check(std::unordered_set<std::string>& to_check, std::ifstream& link_file, int bin_size, std::unordered_map<int, std::streampos>& index_table){
+    std::unordered_set<std::string> all_neighbors;
+    std::unordered_set<std::string>::iterator itr;
+
+    // get the set of all neighbors' neighbors
+    for (itr = to_check.begin(); itr != to_check.end(); itr++){
+        std::string neigh {*itr};
+        // add this unitig's neighbors to the set of all neighbors
+        std::unordered_set<std::string> curr_neighbors;
+        get_neighbors(neigh, link_file, curr_neighbors, bin_size, index_table);
+
+        all_neighbors.insert(curr_neighbors.begin(), curr_neighbors.end());
+    }
+
+    // check if all of the original neighbors are in the set of neighbors' neighbors
+    bool direct_neighbors {true};
+    for (itr = to_check.begin(); itr != to_check.end(); itr++){
+        std::string curr_utg {*itr};
+        if (!all_neighbors.count(curr_utg)){
+            direct_neighbors = false;
+            break;
+        }
+    }
+    return direct_neighbors;
 }
