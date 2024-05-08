@@ -176,9 +176,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
         // if they are, then we should not mark this is a false positive
         // so then we can skip the topology search
         if (!direct_neighbors_check(target_neighbors, link_file, bin_size, index_table)){
-            if (target_utg == "utg215097l"){
-                assert(0);
-            }
             // mark all candidates as "seen" because we only want to see if paths between neighbors exist without any candidate unitigs
             std::unordered_set<std::string> seen_nodes;
             seen_nodes.insert(candidates.begin(), candidates.end());
