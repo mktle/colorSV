@@ -31,7 +31,7 @@ int main(int argc, char* argv[]){
 
         std::cout << "[preprocess] filtering r_utg unitigs\n";
 
-        if (!preprocess::filter_unitigs(input, true)){
+        if (!preprocess::filter_unitigs(input)){
             return 1;
         }
 

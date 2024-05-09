@@ -23,7 +23,7 @@ bool preprocess::file_setup(ArgumentParser& user_args){
 /* Checks that the user input all required flags */
 bool preprocess::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> preprocess_required {"-o", "--r_graph", "--tumor-ids", "--reference", "-t"};
+    std::list<std::string> preprocess_required {"-o", "--graph", "--tumor-ids", "--reference", "-t"};
     if (!user_args.check_required_flags(preprocess_required)){
         return false;
     }
@@ -41,7 +41,7 @@ bool preprocess::check_args(ArgumentParser& user_args){
         user_args.args.insert({"--min-mapq", "10"});
     }
 
-    if (!user_args.check_file("--r_graph", ".gfa")){
+    if (!user_args.check_file("--graph", ".gfa")){
         return false;
     }
 
@@ -53,25 +53,12 @@ bool preprocess::check_args(ArgumentParser& user_args){
 }
 
 /* Identifies tumor-only unitigs from given .gfa file */
-bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
+bool preprocess::filter_unitigs(ArgumentParser& user_args){
     std::cout << "[preprocess::filter_unitigs] classifying unitigs in .gfa file\n";
 
-    std::ifstream gfa_file;
-
-    std::ofstream out_tumor_utg;
-    std::ofstream out_tumor_fa;
-
-    // open input and output files
-    if(is_r_utg){
-        gfa_file.open(user_args.args["--r_graph"]);
-        out_tumor_utg.open(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
-        out_tumor_fa.open(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
-    }else{
-        gfa_file.open(user_args.args["--p_graph"]);
-
-        out_tumor_utg.open(user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.txt");
-        out_tumor_fa.open(user_args.args["-o"] + "/intermediate_output/p_utg_tumor_only_unitigs.fa");
-    }
+    std::ifstream gfa_file(user_args.args["--graph"]);
+    std::ofstream out_tumor_utg(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
+    std::ofstream out_tumor_fa(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
 
     // parse tumor sample IDs into list
     std::vector<std::string> tumor_ids;
@@ -87,10 +74,6 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args, bool is_r_utg){
     tumor_ids.push_back(std::string(start, next));
 
     int read_thresh{ std::stoi(user_args.args["--min-reads"]) };
-    if (!is_r_utg){
-        // since p_utg is being used to remove false positives, allow all tumor-only unitigs regardless of number of reads
-        read_thresh = 1;
-    }
 
     // variables for parsing .gfa file
     std::string line_type;

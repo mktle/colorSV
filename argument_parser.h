@@ -1,9 +1,9 @@
+#ifndef ARGUMENT_PARSER_H
+#define ARGUMENT_PARSER_H
+
 #include <list>
 #include <map>
 #include <string>
-
-#ifndef ARGUMENT_PARSER_H
-#define ARGUMENT_PARSER_H
 
 class ArgumentParser{
 	public:
