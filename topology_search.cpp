@@ -12,13 +12,9 @@
 /* Checks that the user input all required flags */
 bool topology_search::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> required {"-o", "--r_graph", "--filter"};
+    std::list<std::string> required {"-o", "--graph", "--filter"};
     if (!user_args.check_required_flags(required)){
         return false;
-    }
-
-    if (user_args.args.count("-t") == 0){
-        user_args.args.insert({"-t", "3"});
     }
 
     if (user_args.args.count("-k") == 0){
@@ -34,7 +30,7 @@ bool topology_search::check_args(ArgumentParser& user_args){
 // Index link file so the search is a bit faster
 bool topology_search::index_link_file(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table){
 
-    std::ifstream link_file(user_args.args["--r_graph"]);
+    std::ifstream link_file(user_args.args["--graph"]);
     int bin_size {std::stoi(user_args.args["--index-bin-size"])};
 
     char line_type;
@@ -157,7 +153,7 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
 
     int max_steps {std::stoi(user_args.args["-k"])};
     int bin_size {std::stoi(user_args.args["--index-bin-size"])};
-    std::ifstream link_file(user_args.args["--r_graph"]);
+    std::ifstream link_file(user_args.args["--graph"]);
 
     // run topology search on every candidate by iterating through the set
     std::unordered_set<std::string>::iterator itr;

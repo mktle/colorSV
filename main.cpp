@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        std::cout << "[preprocess] filtering r_utg unitigs\n";
+        std::cout << "[preprocess] filtering unitigs to only keep tumor-only\n";
 
         if (!preprocess::filter_unitigs(input)){
             return 1;

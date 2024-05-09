@@ -23,7 +23,7 @@ bool preprocess::file_setup(ArgumentParser& user_args){
 /* Checks that the user input all required flags */
 bool preprocess::check_args(ArgumentParser& user_args){
     // check required flags
-    std::list<std::string> preprocess_required {"-o", "--graph", "--tumor-ids", "--reference", "-t"};
+    std::list<std::string> preprocess_required {"-o", "--graph", "--tumor-ids", "--reference", "-t", "--read-sep"};
     if (!user_args.check_required_flags(preprocess_required)){
         return false;
     }
@@ -42,10 +42,12 @@ bool preprocess::check_args(ArgumentParser& user_args){
     }
 
     if (!user_args.check_file("--graph", ".gfa")){
+        std::cout << "[preprocess::check_args][ERROR] could not open graph file: " << user_args.args["--graph"] << '\n';
         return false;
     }
 
     if (!user_args.check_file("--reference", ".fa")){
+        std::cout << "[preprocess::check_args][ERROR] could not open reference file: " << user_args.args["--reference"] << '\n';
         return false;
     }
 
@@ -73,7 +75,8 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
     }
     tumor_ids.push_back(std::string(start, next));
 
-    int read_thresh{ std::stoi(user_args.args["--min-reads"]) };
+    int read_thresh {std::stoi(user_args.args["--min-reads"])};
+    char read_delim {user_args.args["--read-sep"][0]};
 
     // variables for parsing .gfa file
     std::string line_type;
@@ -111,7 +114,7 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
         }else if (line_type.c_str()[0] == 'A'){
             gfa_file >> ignore >> ignore >> ignore >> read_id;
             // check if this read comes from a non-tumor sample
-            if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find('/'))) != std::end(tumor_ids)){
+            if (std::find(std::begin(tumor_ids), std::end(tumor_ids), read_id.substr(0, read_id.find(read_delim))) != std::end(tumor_ids)){
                 num_tumor_reads++;
             }else{
                 num_healthy_reads++;
