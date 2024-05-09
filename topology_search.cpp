@@ -265,6 +265,10 @@ bool topology_search::get_neighbors(std::string& target_utg, std::ifstream& link
     // jump to unitig location in link file
     link_file.seekg(index_table[link_index], std::ios::beg);
 
+    // sometimes unitigs are not reported in link file
+    // need to track this, since candidate unitigs not in link files should be marked as a false positive
+    bool found_utg {false};
+
     // special case for the first unitig in a bin because of how the file was indexed
     // link table will point to position AFTER the first unitig name
     // i.e., if your first line in the bin is:
@@ -272,15 +276,13 @@ bool topology_search::get_neighbors(std::string& target_utg, std::ifstream& link
     // then the first character read from the line will be '+'
     // so this statement checks if our current unitig is the beginning of the bin
     if (utg_int_id % bin_size == 1){
+        found_utg = true;
         link_file >> link_info;
         link_file >> link_info;
         neighbor_list.insert(link_info);
     }
     link_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    // sometimes unitigs are not reported in link file
-    // need to track this, since candidate unitigs not in link files should be marked as a false positive
-    bool found_utg {false};
     while(link_file >> link_info){
         // next character is unitig ID
         link_file >> link_info;
