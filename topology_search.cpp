@@ -87,6 +87,7 @@ bool topology_search::index_link_file(ArgumentParser& user_args, std::unordered_
 // e.g., utg000016l becomes 16
 int topology_search::utg_to_int(std::string& utg_id){
     // trim the "utg" at the beginning and the "l" at the end
+    
     return std::stoi(utg_id.substr(3, utg_id.length() - 4));
 }
 
@@ -253,6 +254,13 @@ bool topology_search::get_neighbors(std::string& target_utg, std::ifstream& link
 
     // round current utg ID down to the beginning of the current bin to get lookup index
     int link_index {((utg_int_id - 1)/bin_size)*bin_size + 1};
+
+    // unitigs are occasionally removed from the link file
+    // if the lookup unitig for the section that we're trying to check is missing, then move the index back until we find a unitig that hasn't been removed
+    while (index_table.find(link_index) == index_table.end() && link_index - bin_size >= 1) {
+        link_index -= bin_size;
+    }
+    assert(index_table.find(link_index) != index_table.end());
 
     // jump to unitig location in link file
     link_file.seekg(index_table[link_index], std::ios::beg);
