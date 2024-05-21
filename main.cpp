@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
         }
 
         // use mgutils to extract long INDELs and breakpoints
-        std::string cmd{"mgutils-es6.js getsv -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        std::string cmd{"mgutils-es6.js getsv -q 15 -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
         system(cmd.c_str());
 
         // extract translocations

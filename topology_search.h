@@ -17,6 +17,7 @@ namespace topology_search{
 
 	bool write_final_paf(ArgumentParser& args, std::unordered_set<std::string>& sv_set);
 	bool direct_neighbors_check(std::unordered_set<std::string>& to_check, std::ifstream& link_file, int bin_size, std::unordered_map<int, std::streampos>& index_table);
+	std::unordered_set<std::string> load_tumor_unitigs(std::string& utg_path);
 }
 
 #endif

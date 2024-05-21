@@ -148,6 +148,9 @@ bool topology_search::get_split_alignments(ArgumentParser& user_args, std::unord
 }
 
 bool topology_search::run_topology_search(ArgumentParser& user_args, std::unordered_map<int, std::streampos>& index_table, std::unordered_set<std::string>& candidates, std::unordered_set<std::string>& result){
+    // get set of all tumor-only unitigs, since they will be excluded from the topology search
+    std::string utg_path {user_args.args["-o"] + "/intermediate_output/all_tumor_only_unitigs.txt"};
+    std::unordered_set<std::string> all_tumor_utgs = load_tumor_unitigs(utg_path);
 
     std::ofstream removed_file(user_args.args["-o"] + "/intermediate_output/removed_unitigs_topology_search.txt");
 
@@ -169,12 +172,17 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
             continue;
         }
 
+        std::unordered_set<std::string>::iterator temp_it;
+        for (temp_it = target_neighbors.begin(); temp_it != target_neighbors.end(); temp_it++){
+            std::string temp {*temp_it};
+        }
         // check for the special case where all neighbors are neighbors of each other
         // if they are, then we should not mark this is a false positive
         // so then we can skip the topology search
         if (!direct_neighbors_check(target_neighbors, link_file, bin_size, index_table)){
             // mark all candidates as "seen" because we only want to see if paths between neighbors exist without any candidate unitigs
             std::unordered_set<std::string> seen_nodes;
+            std::unordered_set<std::string> seen_target_neighbors;
             seen_nodes.insert(candidates.begin(), candidates.end());
 
             // run BFS for k steps from one neighbor and see if we can get to all of the other neighbors
@@ -189,7 +197,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
             to_traverse.push("*");
 
             int steps_taken {0};
-            int num_neighbors_seen {0};
             while (steps_taken <= max_steps){
                 // get next node to explore
                 std::string node {to_traverse.front()};
@@ -200,17 +207,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
                     steps_taken++;
                     to_traverse.push("*");
                 }else{
-                    // check if this node is one of the target's neighbors
-                    if (target_neighbors.count(node)){
-                        num_neighbors_seen += 1;
-                        if (num_neighbors_seen == (int)target_neighbors.size()){
-                            // successfully found a local path without candidate utgs
-                            // so mark as a false positive
-                            to_remove = true;
-                            break;
-                        }
-                    }
-
                     // get current node's neighbors
                     std::unordered_set<std::string> curr_neighbors;
                     if (!get_neighbors(node, link_file, curr_neighbors, bin_size, index_table)){
@@ -222,7 +218,20 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
                     std::unordered_set<std::string>::iterator itr3;
                     for (itr3 = curr_neighbors.begin(); itr3 != curr_neighbors.end(); itr3++){
                         std::string neigh{*itr3};
-                        if (!seen_nodes.count(neigh)){
+                        if(target_neighbors.count(neigh)){
+                            seen_target_neighbors.insert(neigh);
+                            if (seen_target_neighbors.size() == target_neighbors.size()){
+                                // successfully found a local path without candidate utgs
+                                // so mark as a false positive
+                                to_remove = true;
+                                break;
+                            }
+                            to_traverse.push(neigh);
+                            seen_nodes.insert(neigh);
+                        }
+
+                        // ignore non-candidate tumor-only unitigs
+                        if (!all_tumor_utgs.count(neigh) && !seen_nodes.count(neigh)){
                             to_traverse.push(neigh);
                             seen_nodes.insert(neigh);
                         }
@@ -345,4 +354,14 @@ bool topology_search::direct_neighbors_check(std::unordered_set<std::string>& to
         }
     }
     return direct_neighbors;
+}
+
+std::unordered_set<std::string> topology_search::load_tumor_unitigs(std::string& utg_path){
+    std::unordered_set<std::string> result;
+    std::ifstream utg_file(utg_path);
+    std::string curr_utg;
+    while(utg_file >> curr_utg){
+        result.insert(curr_utg);
+    }
+    return result;
 }

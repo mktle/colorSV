@@ -143,8 +143,7 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 }
 
 bool preprocess::align_unitigs(ArgumentParser& user_args){
-    // r_utg tumor-only unitig alignment to reference
-
+    // tumor-only unitig alignment to reference
     std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
     system(cmd.c_str());
 
