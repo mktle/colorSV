@@ -77,12 +77,12 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
     int read_thresh {std::stoi(user_args.args["--min-reads"])};
     char read_delim {user_args.args["--read-sep"][0]};
 
+    // ignore telomere sequences
+    std::string tel_seq_for {"TTAGGGTTAGGGTTAGGGTTAGGGTTAGGG"};
+    std::string tel_seq_rev {"CCCTAACCCTAACCCTAACCCTAACCCTAA"};
+
     // variables for parsing .gfa file
-    std::string line_type;
-    std::string unitig; 
-    std::string ignore;
-    std::string segment;
-    std::string read_id;
+    std::string line_type, unitig, ignore, segment, read_id;
     int num_tumor_reads{0};
     int num_healthy_reads{0};
 
@@ -103,7 +103,8 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
             // first, write unitig info if this is a tumor-only node
             if(num_tumor_reads >= 0 && num_healthy_reads == 0){
                 out_tumor_utg_all << unitig << '\n';
-                if (num_tumor_reads >= read_thresh){
+                // only keep candidates above read threshold that do not contain telomere sequence
+                if (num_tumor_reads >= read_thresh && !(segment.find(tel_seq_for) != std::string::npos || segment.find(tel_seq_rev) != std::string::npos)){
                     out_tumor_utg_thresh << unitig << '\n';
                     out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
                 }
