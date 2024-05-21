@@ -56,10 +56,9 @@ bool preprocess::check_args(ArgumentParser& user_args){
 
 /* Identifies tumor-only unitigs from given .gfa file */
 bool preprocess::filter_unitigs(ArgumentParser& user_args){
-    std::cout << "[preprocess::filter_unitigs] classifying unitigs in .gfa file\n";
-
     std::ifstream gfa_file(user_args.args["--graph"]);
-    std::ofstream out_tumor_utg(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.txt");
+    std::ofstream out_tumor_utg_all(user_args.args["-o"] + "/intermediate_output/all_tumor_only_unitigs.txt");
+    std::ofstream out_tumor_utg_thresh(user_args.args["-o"] + "/intermediate_output/thresh_tumor_only_unitigs.txt");
     std::ofstream out_tumor_fa(user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa");
 
     // parse tumor sample IDs into list
@@ -102,9 +101,12 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
         if (line_type.c_str()[0] == 'S'){
             // end of the node, so reset for the next node
             // first, write unitig info if this is a tumor-only node
-            if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
-                out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
-                out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+            if(num_tumor_reads >= 0 && num_healthy_reads == 0){
+                out_tumor_utg_all << unitig << '\n';
+                if (num_tumor_reads >= read_thresh){
+                    out_tumor_utg_thresh << unitig << '\n';
+                    out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+                }
             }
 
             gfa_file >> unitig >> segment;
@@ -123,14 +125,18 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
         gfa_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    if(num_tumor_reads >= read_thresh && num_healthy_reads == 0){
-        out_tumor_utg << unitig << ' ' << num_tumor_reads << '\n';
-        out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+    if(num_tumor_reads >= 0 && num_healthy_reads == 0){
+        out_tumor_utg_all << unitig << '\n';
+        if (num_tumor_reads >= read_thresh){
+            out_tumor_utg_thresh << unitig << '\n';
+            out_tumor_fa << '>' << unitig << '\n' << segment << '\n';
+        }
     }
 
     // close input and output files
     gfa_file.close();
-    out_tumor_utg.close();
+    out_tumor_utg_all.close();
+    out_tumor_utg_thresh.close();
     out_tumor_fa.close();
 
     return true;
@@ -139,7 +145,6 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 bool preprocess::align_unitigs(ArgumentParser& user_args){
     // r_utg tumor-only unitig alignment to reference
 
-    std::cout << "[preprocess::align_unitigs] aligning r_utg tumor unitigs to reference genome\n\n";
     std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
     system(cmd.c_str());
 
