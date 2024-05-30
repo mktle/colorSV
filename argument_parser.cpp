@@ -13,8 +13,8 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
         this->args.insert({"command", "--help"});
     }
     // first argument should indicate valid command; otherwise throw error
-    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "snv") && std::strcmp(*(argv + 1), "call") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
-        throw std::invalid_argument("Command not found, see sv-caller --help for valid commands");
+    else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "call") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
+        throw std::invalid_argument("Command not found, see color-sv --help for valid commands");
     }else {
         // add the rest of the command-line options to map of args
         this->args.insert({"command", *(argv+1)});
@@ -83,21 +83,23 @@ bool ArgumentParser::check_file(std::string opt, std::string ext){
 }
 
 void print_help(){
-    std::cout << "Usage: sv-caller <mutation type> <-o OUTPUT PATH> [other flags]\n";
+    std::cout << "Usage: sv-caller <command> -o <output path> [options]\n";
     std::cout << "Commands and options:\n";
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
-    std::cout << "          --graph         STR     path to assembly graph file\n";
-    std::cout << "          --reference     STR     path to reference genome file\n";
-    std::cout << "          -t              INT     number of threads\n";
-    std::cout << "          --tumor-ids     STR     tumor sample identifiers\n";
+    std::cout << "          --graph             STR     path to assembly graph file\n";
+    std::cout << "          --reference         STR     path to reference genome file\n";
+    std::cout << "          --tumor-ids         STR     tumor sample identifiers (separate by commas, no spaces)\n";
+    std::cout << "          --read-sep          STR     delimiter in read names (e.g., / or .)\n";
     std::cout << "     [optional flags] \n";
-    std::cout << "          --min-reads     INT     minimum number of reads when identifying tumor-only unitigs (default 2)\n";
-    std::cout << "          --min-mapq      INT     minimum MAPQ required for tumor-only unitig alignments (default 10)\n";
-    std::cout << "          --filter        STR     path to files with regions to filter (e.g., centromeres)\n";
-    std::cout << "  * translocation\n";
+    std::cout << "          --min-reads         INT     minimum number of reads when identifying tumor-only unitigs [2]\n";
+    std::cout << "          --min-mapq          INT     minimum MAPQ required for tumor-only unitig alignments [10]\n";
+    std::cout << "          -t                  INT     number of threads during alignment [4]\n";
+    std::cout << "  * call\n";
     std::cout << "     <required flags>\n";
-    std::cout << "          --graph         STR     path to assembly graph file\n";
+    std::cout << "          --graph             STR     path to assembly graph file\n";
+    std::cout << "          --filter            STR     path to files with regions to filter (e.g., centromeres)\n";
     std::cout << "     [optional flags] \n";
-    std::cout << "          -k              INT     maximum number of steps in topology search (default 10)\n";
+    std::cout << "          -k                  INT     maximum number of steps in topology search [10]\n";
+    std::cout << "          --index-bin-size    INT     unitigs per bin when indexing assembly graph file [100]\n";
 }

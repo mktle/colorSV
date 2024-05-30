@@ -172,10 +172,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
             continue;
         }
 
-        std::unordered_set<std::string>::iterator temp_it;
-        for (temp_it = target_neighbors.begin(); temp_it != target_neighbors.end(); temp_it++){
-            std::string temp {*temp_it};
-        }
         // check for the special case where all neighbors are neighbors of each other
         // if they are, then we should not mark this is a false positive
         // so then we can skip the topology search
@@ -210,7 +206,6 @@ bool topology_search::run_topology_search(ArgumentParser& user_args, std::unorde
                     // get current node's neighbors
                     std::unordered_set<std::string> curr_neighbors;
                     if (!get_neighbors(node, link_file, curr_neighbors, bin_size, index_table)){
-                        std::cout << "[topology_search::run_topology_search][ERROR] error parsing link file when getting neighbors for " << node << '\n';
                         return false;
                     }
                 

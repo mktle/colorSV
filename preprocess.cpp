@@ -34,7 +34,7 @@ bool preprocess::check_args(ArgumentParser& user_args){
     }
 
     if (user_args.args.count("-t") == 0){
-        user_args.args.insert({"-t", "3"});
+        user_args.args.insert({"-t", "4"});
     }
 
     if (user_args.args.count("--min-mapq") == 0){
@@ -145,7 +145,7 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 
 bool preprocess::align_unitigs(ArgumentParser& user_args){
     // tumor-only unitig alignment to reference
-    std::string cmd{"./minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
+    std::string cmd{"minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
     system(cmd.c_str());
 
     // filter to only keep alignments with minimum MAPQ score

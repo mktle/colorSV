@@ -70,7 +70,7 @@ int main(int argc, char* argv[]){
         }
 
         // use mgutils to extract long INDELs and breakpoints
-        std::string cmd{"mgutils-es6.js getsv -q 15 -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        std::string cmd{"./gafcall.js extract -q 15 -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
         system(cmd.c_str());
 
         // extract translocations
@@ -78,10 +78,10 @@ int main(int argc, char* argv[]){
         system(cmd.c_str());
 
         // remove centromere regions
-        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/sv_calls.sv > " + input.args["-o"] + "/sv_calls_cen_filtered.sv";
+        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/sv_calls.sv > " + input.args["-o"] + "/sv_calls_region_filtered.sv";
         system(cmd.c_str());
 
-        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/translocations.sv > " + input.args["-o"] + "/translocations_cen_filtered.sv";
+        cmd = "awk '! /cen_dist=0;/' " +    input.args["-o"] + "/translocations.sv > " + input.args["-o"] + "/translocations_region_filtered.sv";
         system(cmd.c_str());
 
     }else{
