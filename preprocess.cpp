@@ -34,7 +34,7 @@ bool preprocess::check_args(ArgumentParser& user_args){
     }
 
     if (user_args.args.count("-t") == 0){
-        user_args.args.insert({"-t", "4"});
+        user_args.args.insert({"-t", "3"});
     }
 
     if (user_args.args.count("--min-mapq") == 0){

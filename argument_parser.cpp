@@ -94,11 +94,11 @@ void print_help(){
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads         INT     minimum number of reads when identifying tumor-only unitigs [2]\n";
     std::cout << "          --min-mapq          INT     minimum MAPQ required for tumor-only unitig alignments [10]\n";
-    std::cout << "          -t                  INT     number of threads during alignment [4]\n";
+    std::cout << "          -t                  INT     number of threads during alignment [3]\n";
     std::cout << "  * call\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph             STR     path to assembly graph file\n";
-    std::cout << "          --filter            STR     path to files with regions to filter (e.g., centromeres)\n";
+    std::cout << "          --filter            STR     path to BED file with regions to ignore (e.g., centromeres)\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          -k                  INT     maximum number of steps in topology search [10]\n";
     std::cout << "          --index-bin-size    INT     unitigs per bin when indexing assembly graph file [100]\n";
