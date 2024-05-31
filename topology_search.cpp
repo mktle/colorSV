@@ -8,12 +8,23 @@
 #include <limits>
 #include <queue>
 #include <sstream>
+#include <sys/stat.h>
 
 /* Checks that the user input all required flags */
 bool topology_search::check_args(ArgumentParser& user_args){
     // check required flags
     std::list<std::string> required {"-o", "--graph", "--filter"};
     if (!user_args.check_required_flags(required)){
+        return false;
+    }
+
+    if (!user_args.check_file("--graph", ".gfa")){
+        std::cout << "[topology_search::check_args][ERROR] invalid graph file: " << user_args.args["--graph"] << '\n';
+        return false;
+    }
+
+    if (!user_args.check_file("--filter", ".bed")){
+        std::cout << "[topology_search::check_args][ERROR] invalid mask/filtering file: " << user_args.args["--filter"] << '\n';
         return false;
     }
 
