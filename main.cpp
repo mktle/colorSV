@@ -69,8 +69,8 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
-        // use mgutils to extract long INDELs and breakpoints
-        std::string cmd{"./gafcall.js extract -q 15 -Q 15 -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        // extract long INDELs and breakpoints
+        std::string cmd{"./gafcall.js extract -q " + input.args["-q"] + " -Q " + input.args["-Q"] + " -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
         system(cmd.c_str());
 
         // extract translocations

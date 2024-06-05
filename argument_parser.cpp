@@ -101,5 +101,7 @@ void print_help(){
     std::cout << "          --filter            STR     path to BED file with regions to ignore (e.g., centromeres)\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          -k                  INT     maximum number of steps in topology search [10]\n";
+    std::cout << "          -q                  INT     minimum MAPQ of alignments when extracting breakpoints [15]\n";
+    std::cout << "          -Q                  INT     minimum MAPQ for alignment ends when extracting breakpoints [15]\n";
     std::cout << "          --index-bin-size    INT     unitigs per bin when indexing assembly graph file [100]\n";
 }

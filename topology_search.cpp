@@ -8,7 +8,6 @@
 #include <limits>
 #include <queue>
 #include <sstream>
-#include <sys/stat.h>
 
 /* Checks that the user input all required flags */
 bool topology_search::check_args(ArgumentParser& user_args){
@@ -30,6 +29,14 @@ bool topology_search::check_args(ArgumentParser& user_args){
 
     if (user_args.args.count("-k") == 0){
         user_args.args.insert({"-k", "10"});
+    }
+
+    if (user_args.args.count("-q") == 0){
+        user_args.args.insert({"-q", "15"});
+    }
+
+    if (user_args.args.count("-Q") == 0){
+        user_args.args.insert({"-Q", "15"});
     }
 
     if (user_args.args.count("--index-bin-size") == 0){
