@@ -1,7 +1,5 @@
 #include "argument_parser.h"
 
-#include <boost/filesystem.hpp>
-
 #include <cstring>
 #include <list>
 #include <iostream>
@@ -20,7 +18,7 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
         this->args.insert({"command", *(argv+1)});
         int i{2};
         int prev_opt_index{-1};
-        while (*(argv + i) != '\0'){
+        while (*(argv + i) != 0){
             // check if this is an option by looking for '-' prefix
             if (*(argv + i)[0] == '-'){
                 // if this is not the first option, add previous option to map
@@ -75,21 +73,23 @@ bool ArgumentParser::check_file(std::string opt, std::string ext){
         return false;
     }
 
-    if (boost::filesystem::extension(this->args[opt]) != ext){
+    size_t del_pos {this->args[opt].find_last_of('.')};
+    if (del_pos == std::string::npos || this->args[opt].substr(del_pos) != ext){
         std::cout << "[ArgumentParser::check_file][ERROR] file specified in " << opt << " must be type " << ext << '\n';
         return false;
     }
+
     return true;
 }
 
 void print_help(){
-    std::cout << "Usage: sv-caller <command> -o <output path> [options]\n";
+    std::cout << "Usage: colorSV <command> -o <output path> [options]\n";
     std::cout << "Commands and options:\n";
     std::cout << "  * preprocess\n";
     std::cout << "     <required flags>\n";
     std::cout << "          --graph             STR     path to assembly graph file\n";
     std::cout << "          --reference         STR     path to reference genome file\n";
-    std::cout << "          --tumor-ids         STR     tumor sample identifiers (separate by commas, no spaces)\n";
+    std::cout << "          --tumor-ids         STR     tumor sample identifiers\n";
     std::cout << "          --read-sep          STR     delimiter in read names (e.g., / or .)\n";
     std::cout << "     [optional flags] \n";
     std::cout << "          --min-reads         INT     minimum number of reads when identifying tumor-only unitigs [2]\n";
