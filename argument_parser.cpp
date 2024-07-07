@@ -12,8 +12,11 @@ ArgumentParser::ArgumentParser(int &argc, char** argv){
     }
     // first argument should indicate valid command; otherwise throw error
     else if(std::strcmp(*(argv + 1), "preprocess") && std::strcmp(*(argv + 1), "call") && std::strcmp(*(argv + 1), "--help") && std::strcmp(*(argv + 1), "sv")){
-        throw std::invalid_argument("Command not found, see color-sv --help for valid commands");
+        throw std::invalid_argument("Command not found, see colorSV --help for valid commands");
     }else {
+        std::string executable {*(argv)};
+        this->args.insert({"exe_path", executable.substr(0, executable.find_last_of('/') + 1)});
+
         // add the rest of the command-line options to map of args
         this->args.insert({"command", *(argv+1)});
         int i{2};

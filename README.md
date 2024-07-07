@@ -4,9 +4,9 @@ colorSV (<ins>co</ins>assembly <ins>lo</ins>ng-<ins>r</ins>ange <ins>SV</ins> ca
 * [Software Requirements](#software-requirements)
 * [Example Usage](#example-usage)
 * [Pipeline](#pipeline)
-	* [1) Joint Assembly](#joint-assembly)
-	* [2) Preprocessing](#preprocessing)
-	* [3) SV Calling](#sv-calling)
+	* [1) Joint Assembly](#1-joint-assembly)
+	* [2) Preprocessing](#2-preprocessing)
+	* [3) SV Calling](#3-sv-calling)
 * [Limitations](#limitations)
 
 

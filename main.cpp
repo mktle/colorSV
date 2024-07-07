@@ -8,6 +8,7 @@
 #include <fstream>
 #include <map>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <unordered_map>
 
 int main(int argc, char* argv[]){
@@ -69,8 +70,16 @@ int main(int argc, char* argv[]){
             return 1;
         }
 
+        std::string cmd;
+        struct stat buffer;   
+        // check for gafcall script in colorSV directory first, then $PATH
+        if (stat((input.args["exe_path"] + "gafcall.js").c_str(), &buffer) == 0){
+            cmd  = input.args["exe_path"] + "gafcall.js";
+        }else{
+            cmd = "gafcall.js";
+        }
         // extract long INDELs and breakpoints
-        std::string cmd{"./gafcall.js extract -q " + input.args["-q"] + " -Q " + input.args["-Q"] + " -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv"};
+        cmd += " extract -q " + input.args["-q"] + " -Q " + input.args["-Q"] + " -b " + input.args["--filter"] + ' ' + input.args["-o"] + "/intermediate_output/candidate_svs_without_mask.paf > " + input.args["-o"] + "/sv_calls.sv";
         system(cmd.c_str());
 
         // extract translocations

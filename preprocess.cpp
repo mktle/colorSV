@@ -4,12 +4,14 @@
 #include <algorithm>
 #include <assert.h>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <stdlib.h>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
 bool preprocess::file_setup(ArgumentParser& user_args){
@@ -144,8 +146,16 @@ bool preprocess::filter_unitigs(ArgumentParser& user_args){
 }
 
 bool preprocess::align_unitigs(ArgumentParser& user_args){
+    std::string cmd;
+    struct stat buffer;   
+    // check for minimap executable in colorSV directory first, then $PATH
+    if (stat((user_args.args["exe_path"] + "minimap2").c_str(), &buffer) == 0){
+        cmd  = user_args.args["exe_path"] + "minimap2";
+    }else{
+        cmd = "minimap2";
+    }
     // tumor-only unitig alignment to reference
-    std::string cmd{"minimap2 -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf"};
+    cmd += " -cx lr:hq -t" + user_args.args["-t"] + " --ds " + user_args.args["--reference"] + " " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.fa > " + user_args.args["-o"] + "/intermediate_output/tumor_only_unitigs.paf";
     system(cmd.c_str());
 
     // filter to only keep alignments with minimum MAPQ score
