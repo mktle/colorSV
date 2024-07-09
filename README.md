@@ -2,7 +2,10 @@ colorSV (<ins>co</ins>assembly <ins>lo</ins>ng-<ins>r</ins>ange <ins>SV</ins> ca
 
 # Table of Contents
 * [Software Requirements](#software-requirements)
+* [Installation](#installation)
 * [Example Usage](#example-usage)
+	* [From Example Reads](#from-example-reads)
+	* [From An Example Graph](#from-an-example-graph)
 * [Pipeline](#pipeline)
 	* [1) Joint Assembly](#1-joint-assembly)
 	* [2) Preprocessing](#2-preprocessing)
@@ -14,18 +17,62 @@ colorSV (<ins>co</ins>assembly <ins>lo</ins>ng-<ins>r</ins>ange <ins>SV</ins> ca
 * [Minimap2](https://github.com/lh3/minimap2), v2.27 or later
 * [k8](https://github.com/attractivechaos/k8), v1.0 or later
 
+# Installation
+colorSV can be installed by downloading the required executables and scripts from the downloads page
+
+```
+wget https://github.com/mktle/colorSV/releases/download/v0.1.0/colorSV-0.1.0.tar.gz
+tar xvzf colorSV-0.1.0.tar.gz
+```
+
+or by building from source (in which case [minimap2 and k8](#software-requirements) must already be installed)
+
+```
+git clone git@github.com:mktle/colorSV.git
+cd colorSV && make
+```
 
 # Example Usage
 
-```
+A set of example data is available on the downloads page. The reads are a subset of the publicly available COLO829/COLO829BL PacBio Revio datasets (https://downloads.pacbcloud.com/public/revio/2023Q2/COLO829/), where the tumor datasets have the IDs m84039\_230312\_025934\_s1 and m84039\_230328\_000836\_s3.
+
+Since the co-assembly step can take some time, we have also uploaded a sample co-assembly graph generated from the example read data. The following sections contain instructions for running colorSV on both the [raw reads themselves](#from-example-reads) and the [graph after co-assembling the raw reads](#from-an-example-graph).
+
+## From Example Reads
+
+``` 
+# download demo FASTA data
+wget https://github.com/mktle/colorSV/releases/download/v0.1.0/demo_fasta.tar.gz
+tar xvzf demo_fasta.tar.gz
+
 # Perform co-assembly
-hifiasm -o demo.asm ./example/demo_samples.fa 2> demo.log
+hifiasm -o demo.asm ./demo_fasta/tumor.fa ./demo_fasta/normal.fa  2> demo.log
 
 # Identify and align tumor-only unitigs
-colorSV preprocess -o ./demo_results --graph demo.asm.bp.r_utg.gfa --reference ./example/mini_ref.fa --tumor-ids tumor_sample1,tumor_sample2 --read-sep /
+colorSV preprocess -o ./demo_results --graph demo.asm.bp.r_utg.gfa --reference chm13v2.fa --tumor-ids m84039_230312_025934_s1 m84039_230328_000836_s3 --read-sep /
 
 # Perform SV calling
-colorSV call -o ./demo_results --graph demo.asm.bp.r_utg.gfa --filter ./example/mask_regions.bed
+colorSV call -o ./demo_results --graph demo.asm.bp.r_utg.gfa --filter ./demo_fasta/chm13v2.cen-mask.bed
+
+# View example translocation call
+less -S ./demo_results/translocations_region_filtered.sv
+```
+
+## From An Example Graph
+
+``` 
+# download demo co-assembly graph
+wget https://github.com/mktle/colorSV/releases/download/v0.1.0/demo_graph.tar.gz
+tar xvzf demo_graph.tar.gz
+
+# Identify and align tumor-only unitigs
+colorSV preprocess -o ./demo_results --graph ./demo_graph/demo.asm.bp.r_utg.gfa --reference chm13v2.fa --tumor-ids m84039_230312_025934_s1 m84039_230328_000836_s3 --read-sep /
+
+# Perform SV calling
+colorSV call -o ./demo_results --graph ./demo_graph/demo.asm.bp.r_utg.gfa --filter ./demo_graph/chm13v2.cen-mask.bed
+
+# View example translocation call
+less -S ./demo_results/translocations_region_filtered.sv
 ```
 
 # Pipeline
