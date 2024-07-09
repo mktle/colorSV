@@ -34,19 +34,19 @@ cd colorSV && make
 
 # Example Usage
 
-A set of example data is available on the downloads page. The reads are a subset of the publicly available COLO829/COLO829BL PacBio Revio datasets (https://downloads.pacbcloud.com/public/revio/2023Q2/COLO829/), where the tumor datasets have the IDs m84039\_230312\_025934\_s1 and m84039\_230328\_000836\_s3.
+A set of example data is available on the downloads page. The reads are a subset of the publicly available [COLO829/COLO829BL PacBio Revio datasets](https://downloads.pacbcloud.com/public/revio/2023Q2/COLO829/), where the tumor datasets have the IDs m84039\_230312\_025934\_s1 and m84039\_230328\_000836\_s3. The CHM13 reference can be downloaded [here](https://github.com/marbl/CHM13).
 
 Since the co-assembly step can take some time, we have also uploaded a sample co-assembly graph generated from the example read data. The following sections contain instructions for running colorSV on both the [raw reads themselves](#from-example-reads) and the [graph after co-assembling the raw reads](#from-an-example-graph).
 
 ## From Example Reads
 
-``` 
+```
 # download demo FASTA data
 wget https://github.com/mktle/colorSV/releases/download/v0.1.0/demo_fasta.tar.gz
 tar xvzf demo_fasta.tar.gz
 
 # Perform co-assembly
-hifiasm -o demo.asm ./demo_fasta/tumor.fa ./demo_fasta/normal.fa  2> demo.log
+hifiasm -o demo.asm ./demo_fasta/tumor.fa ./demo_fasta/normal.fa 2> demo.log
 
 # Identify and align tumor-only unitigs
 colorSV preprocess -o ./demo_results --graph demo.asm.bp.r_utg.gfa --reference chm13v2.fa --tumor-ids m84039_230312_025934_s1 m84039_230328_000836_s3 --read-sep /
@@ -60,7 +60,7 @@ less -S ./demo_results/translocations_region_filtered.sv
 
 ## From An Example Graph
 
-``` 
+```
 # download demo co-assembly graph
 wget https://github.com/mktle/colorSV/releases/download/v0.1.0/demo_graph.tar.gz
 tar xvzf demo_graph.tar.gz
@@ -92,7 +92,7 @@ This command will create the directory `/path/to/output/directory/intermediate_o
 
 * Required arguments
 	* `--graph`: path to a joint assembly graph in .gfa format (see the section on [joint assembly](#joint-assembly))
-	* `--reference`: path to the reference genome in .fa format (we would recommend using T2T-CHM13v2.0)
+	* `--reference`: path to the reference genome in .fa format (we would recommend using [T2T-CHM13](https://github.com/marbl/CHM13))
 	* `--tumor-ids`: a list of the tumor sample IDs (`--tumor-ids ID1 ID2`)
 		* For example, the tumor reads might come from a sample with the identifier m63080_182826_000329_s2, and a given read might have an ID that looks something like m63080_182826_000329_s2/43058412/ccs. The ID to specify for this example would be m63080_182826_000329_s2.
 		* If pooling tumor reads from multiple runs, they can be specified in a space or comma-delimited list.
